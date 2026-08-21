@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta id="themeColor" name="theme-color" content="#2c0f4a" />
+    <title>Bingo</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="mobile.css" />
+  </head>
+  <body>
+    <main class="mobile-shell">
+      <section id="loading" class="message-card" aria-live="polite">
+        <div class="spinner" aria-hidden="true"></div>
+        <p>Building your card…</p>
+      </section>
+
+      <section id="errorState" class="message-card" hidden>
+        <div class="message-emoji" aria-hidden="true">🔗</div>
+        <h1>This game link isn’t available</h1>
+        <p id="errorMessage">Ask the organizer for a new link.</p>
+      </section>
+
+      <section id="game" class="game" hidden>
+        <header class="game-header">
+          <div class="game-copy">
+            <h1 id="gameTitle"></h1>
+            <p id="rulesLine" class="rules"></p>
+          </div>
+          <button id="resetBtn" class="button ghost" type="button">New board</button>
+        </header>
+        <div class="bingo-letters" aria-hidden="true"><span>B</span><span>I</span><span>N</span><span>G</span><span>O</span></div>
+        <div id="cardGrid" class="card-grid" aria-label="Your bingo card" data-clarity-unmask="true"></div>
+        <p class="hint">Tap a square to add a name. Tap it again to edit.</p>
+      </section>
+    </main>
+
+    <div id="entryModal" class="modal" aria-hidden="true">
+      <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="entryTitle" aria-describedby="modalPrompt">
+        <h2 id="entryTitle">Who?</h2>
+        <p id="modalPrompt" data-clarity-unmask="true"></p>
+        <input id="guestNameInput" type="text" maxlength="80" autocomplete="off" placeholder="Enter their name" />
+        <div class="modal-actions">
+          <button id="cancelEntry" class="button ghost" type="button">Cancel</button>
+          <button id="saveEntry" class="button primary" type="button">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="winModal" class="modal" aria-hidden="true">
+      <div class="modal-card celebrate" role="dialog" aria-modal="true" aria-labelledby="winTitle">
+        <div id="winEmoji" class="celebrate-emoji" aria-hidden="true">🎉</div>
+        <h2 id="winTitle">Bingo!</h2>
+        <p id="winMessage">You completed a row. Nicely done.</p>
+        <button id="closeWin" class="button primary" type="button">Keep playing</button>
+        <div id="winDigest" class="win-digest" data-clarity-unmask="true"></div>
+      </div>
+    </div>
+
+    <script src="mobile.js"></script>
+  </body>
+</html>

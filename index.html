@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Create printable bingo cards or a mobile bingo game from your own CSV." />
+    <title>Bingo Name-o</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+    <script type="text/javascript">
+      if (window.location.hostname !== "localhost" && window.location.hostname !== "127.0.0.1") {
+        (function(c,l,a,r,i,t,y){
+          c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+          t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+          y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+        })(window, document, "clarity", "script", "y5jtcx07fo");
+      }
+    </script>
+  </head>
+  <body>
+    <main class="page-shell">
+      <h1 class="page-title">Bingo Name-o</h1>
+      <form id="bingoForm" class="builder-grid" novalidate>
+        <div class="left-column">
+          <section class="form-section" aria-label="Card details">
+            <label class="field">
+              <span>Card Title</span>
+              <input id="cardTitle" type="text" value="Bingo" maxlength="80" required />
+            </label>
+            <label class="field">
+              <span>Instructions <small>Optional</small></span>
+              <textarea id="cardSubtitle" class="instructions-input" rows="2" maxlength="240">Find someone who matches each square. No repeats :)</textarea>
+            </label>
+            <div class="field">
+              <label for="freeEmoji">Free-Space Emoji</label>
+              <div class="emoji-row">
+                <input id="freeEmoji" type="text" value="✨" maxlength="8" aria-describedby="emojiHelp" />
+                <button id="openEmojiPicker" class="button secondary" type="button">Choose emoji</button>
+              </div>
+              <small id="emojiHelp">Shown in the center square.</small>
+            </div>
+          </section>
+
+          <section class="form-section end-screen-section" aria-label="End-game screen">
+            <h2 class="section-title">End-Game Screen</h2>
+            <label class="field">
+              <span>Celebration Emoji</span>
+              <div class="emoji-row">
+                <input id="winEmoji" type="text" value="🎉" maxlength="8" />
+                <button id="openWinEmojiPicker" class="button secondary" type="button">Choose emoji</button>
+              </div>
+            </label>
+            <label class="field">
+              <span>Heading</span>
+              <input id="winTitle" type="text" value="Bingo!" maxlength="80" />
+            </label>
+            <label class="field">
+              <span>Message</span>
+              <textarea id="winMessage" class="instructions-input" rows="2" maxlength="240">You completed a row. Nicely done.</textarea>
+            </label>
+            <label class="field">
+              <span>Button Label</span>
+              <input id="winButton" type="text" value="Keep playing" maxlength="40" />
+            </label>
+          </section>
+        </div>
+
+        <div class="middle-column">
+          <section class="form-section list-section" aria-label="Bingo items">
+            <h2 class="section-title">Square Content</h2>
+            <div class="upload-box">
+              <input id="csvFile" class="visually-hidden" type="file" accept=".csv,text/csv" />
+              <label class="button secondary" for="csvFile">Upload CSV</label>
+              <div>
+                <strong id="fileName">No file selected</strong>
+                <span>CSV files up to 2 MB</span>
+              </div>
+            </div>
+
+            <div class="or-divider"><span>or</span></div>
+            <div class="field">
+              <label id="squaresLabel" for="phrasesInput">Enter Your Content</label>
+              <div class="textarea-wrap">
+                <div id="lineNumbers" class="line-numbers" aria-hidden="true"></div>
+                <textarea id="phrasesInput" rows="12" spellcheck="true" aria-labelledby="squaresLabel" placeholder="Has traveled to another continent&#10;Can play a musical instrument&#10;Prefers tea over coffee"></textarea>
+              </div>
+            </div>
+            <div class="list-summary" aria-live="polite">
+              <span id="phraseCounter" class="count-badge">0 of 30 unique items</span>
+              <span id="duplicateMessage"></span>
+            </div>
+          </section>
+
+          <section class="form-section saved-section" aria-label="Saved lists">
+            <div class="field">
+              <label for="listName">Save This List As</label>
+              <div class="inline-field">
+                <input id="listName" type="text" maxlength="60" placeholder="bday party" />
+                <button id="saveListBtn" class="button secondary" type="button">Save</button>
+              </div>
+            </div>
+            <div class="field">
+              <label for="savedLists">Load a Previous List</label>
+              <div class="inline-field">
+                <select id="savedLists">
+                  <option value="">No saved lists</option>
+                </select>
+                <button id="loadListBtn" class="button secondary" type="button">Load</button>
+              </div>
+            </div>
+            <p id="listStatus" class="status list-status" aria-live="polite"></p>
+          </section>
+        </div>
+
+        <section class="form-section play-section" aria-label="Output options">
+          <h2 class="section-title">How Do You Want to Play?</h2>
+          <div class="play-options">
+            <section class="output-option">
+              <h3>Print</h3>
+              <p>Four cards per US letter page.</p>
+              <label class="field compact">
+                <span>Number of Cards</span>
+                <input id="cardCount" type="number" min="1" max="200" value="4" />
+              </label>
+              <button id="generatePrintBtn" class="button primary full" type="button">Generate</button>
+              <button id="printBtn" class="button text full" type="button">Print / PDF</button>
+            </section>
+
+            <section class="output-option">
+              <h3>Mobile</h3>
+              <p>Each visitor gets their own board.</p>
+              <button id="createMobileBtn" class="button primary full" type="button">Create game</button>
+            </section>
+          </div>
+
+          <div id="mobileResult" class="mobile-result" hidden>
+            <p>Open this link to test the mobile board. The same link gives each new browser or device its own randomized card and expires after 30 days.</p>
+            <label class="field compact" for="mobileLink">
+                <span>Shareable Game Link</span>
+              <input id="mobileLink" type="text" readonly />
+            </label>
+            <div class="result-actions">
+              <button id="copyLinkBtn" class="button secondary" type="button">Copy link</button>
+              <button id="openGameBtn" class="button secondary" type="button">Open game</button>
+            </div>
+          </div>
+
+          <p id="status" class="status" aria-live="polite"></p>
+        </section>
+      </form>
+
+      <section id="previewSection" class="preview-section" hidden aria-labelledby="previewHeading">
+        <div class="preview-heading">
+          <div>
+            <h2 id="previewHeading">Your randomized cards</h2>
+          </div>
+          <button id="clearCardsBtn" class="button text" type="button">Clear preview</button>
+        </div>
+        <div class="cards" id="cards"></div>
+      </section>
+
+      <footer class="site-footer">Made with &lt;3</footer>
+    </main>
+
+    <div id="emojiModal" class="modal" aria-hidden="true">
+      <div class="modal-card emoji-card" role="dialog" aria-modal="true" aria-labelledby="emojiTitle">
+        <div class="modal-header">
+          <h2 id="emojiTitle">Choose an emoji</h2>
+          <button id="closeEmojiPicker" class="button text" type="button">Close</button>
+        </div>
+        <label class="field" for="emojiSearch">
+          <span>Search</span>
+          <input id="emojiSearch" type="search" placeholder="Try star, heart, party…" />
+        </label>
+        <div id="emojiGrid" class="emoji-grid"></div>
+        <p id="emojiCount" class="modal-note"></p>
+      </div>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
