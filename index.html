@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content="Create printable bingo cards or a mobile bingo game from your own CSV." />
     <title>Bingo Name-o</title>
-    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="favicon.svg?v=4" type="image/svg+xml" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -137,7 +137,7 @@
           </div>
 
           <div id="mobileResult" class="mobile-result" hidden>
-            <p>The game link gives each browser its own randomized card. Progress is saved automatically for 30 days.</p>
+            <p>The game link gives each browser its own randomized card. Progress is saved automatically for 90 days.</p>
             <label class="field compact" for="mobileLink">
               <span>Shareable Game Link</span>
               <input id="mobileLink" type="text" readonly />
@@ -171,7 +171,9 @@
         <div class="cards" id="cards"></div>
       </section>
 
-      <footer class="site-footer">Made with &lt;3</footer>
+      <footer class="site-footer">
+        <a href="admin.html">Made with &lt;3</a>
+      </footer>
     </main>
 
     <div id="emojiModal" class="modal" aria-hidden="true">

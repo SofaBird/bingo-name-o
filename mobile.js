@@ -340,6 +340,23 @@ function showError(message) {
   elements.errorState.hidden = false;
 }
 
+function registerMobileLink() {
+  const collection = gameData?.collection;
+  if (!collection?.gameId || !collection?.writeKey) return;
+  fetch("/api/save-game-link", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      gameId: collection.gameId,
+      writeKey: collection.writeKey,
+      mobilePath: `${window.location.pathname}${window.location.search}${window.location.hash}`,
+    }),
+    keepalive: true,
+  }).catch(() => {
+    // Player progress still works if an older game's admin link cannot be backfilled.
+  });
+}
+
 async function initialize() {
   const gameParameter = getGameParameter();
   if (!gameParameter) {
@@ -349,10 +366,14 @@ async function initialize() {
   try {
     gameData = await decodeGame(gameParameter);
     if (!Array.isArray(gameData.phrases) || gameData.phrases.length < 30) throw new Error("Not enough items");
-    if (gameData.expiresAt && Date.now() > gameData.expiresAt) {
-      showError("This game expired after 30 days. Ask the organizer to create a fresh link.");
+    const effectiveExpiry = gameData.createdAt
+      ? Math.max(Number(gameData.expiresAt) || 0, Number(gameData.createdAt) + (90 * 24 * 60 * 60 * 1000))
+      : Number(gameData.expiresAt) || 0;
+    if (effectiveExpiry && Date.now() > effectiveExpiry) {
+      showError("This game expired after 90 days. Ask the organizer to create a fresh link.");
       return;
     }
+    registerMobileLink();
     gameKey = hashString(gameParameter);
     startClarity(gameKey);
     state = loadState() || buildBoard();

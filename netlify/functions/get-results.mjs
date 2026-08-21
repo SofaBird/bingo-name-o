@@ -1,4 +1,6 @@
 import {
+  GAME_RETENTION_DAYS,
+  gameExpiresAt,
   getBingoStore,
   json,
   tokenMatches,
@@ -28,7 +30,8 @@ export default async function getResults(request) {
   const game = await store.get(`games/${gameId}.json`, { type: "json", consistency: "strong" });
   if (!game) return json({ error: "Game not found." }, 404);
   if (!tokenMatches(readKey, game.readKeyHash)) return json({ error: "Invalid results key." }, 403);
-  if (Date.now() > game.expiresAt) return json({ error: "These results expired after 30 days." }, 410);
+  const expiresAt = gameExpiresAt(game);
+  if (Date.now() > expiresAt) return json({ error: `These results expired after ${GAME_RETENTION_DAYS} days.` }, 410);
 
   const listed = await store.list({ prefix: `players/${gameId}/` });
   const players = await readPlayers(store, listed.blobs);
@@ -39,7 +42,7 @@ export default async function getResults(request) {
       id: game.id,
       title: game.title,
       createdAt: game.createdAt,
-      expiresAt: game.expiresAt,
+      expiresAt,
     },
     players,
   });

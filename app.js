@@ -1,5 +1,5 @@
 const MINIMUM_ITEMS = 30;
-const GAME_LIFETIME_MS = 30 * 24 * 60 * 60 * 1000;
+const GAME_LIFETIME_MS = 90 * 24 * 60 * 60 * 1000;
 const SAVED_LISTS_KEY = "make_bingo_saved_lists_v1";
 const LATEST_MOBILE_GAME_KEY = "bingo_latest_mobile_game_v1";
 
@@ -456,6 +456,19 @@ async function createMobileGame() {
     const encoded = await encodeGame(payload);
     const url = getMobilePageUrl();
     url.hash = `game=${encoded}`;
+    const linkRegistrationResponse = await fetch("/api/save-game-link", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        gameId: registration.gameId,
+        writeKey: registration.writeKey,
+        mobilePath: `${url.pathname}${url.search}${url.hash}`,
+      }),
+    });
+    if (!linkRegistrationResponse.ok) {
+      const linkError = await linkRegistrationResponse.json().catch(() => ({}));
+      throw new Error(linkError.error || "The mobile link could not be added to the organizer dashboard.");
+    }
     const resultsUrl = new URL("results.html", url);
     resultsUrl.hash = new URLSearchParams({
       game: registration.gameId,

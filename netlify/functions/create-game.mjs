@@ -19,7 +19,7 @@ export default async function createGame(request) {
   const requestedExpiry = Number(body?.expiresAt);
   const expiresAt = Number.isFinite(requestedExpiry)
     ? Math.min(Math.max(requestedExpiry, now + 60_000), now + MAX_GAME_AGE_MS)
-    : now + (30 * 24 * 60 * 60 * 1000);
+    : now + MAX_GAME_AGE_MS;
 
   const gameId = randomToken(9);
   const writeKey = randomToken();

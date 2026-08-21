@@ -10,6 +10,9 @@ const files = [
   "results.html",
   "results.css",
   "results.js",
+  "admin.html",
+  "admin.css",
+  "admin.js",
   "favicon.svg",
 ];
 
