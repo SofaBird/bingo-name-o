@@ -1,6 +1,7 @@
 const MINIMUM_ITEMS = 30;
 const GAME_LIFETIME_MS = 30 * 24 * 60 * 60 * 1000;
 const SAVED_LISTS_KEY = "make_bingo_saved_lists_v1";
+const LATEST_MOBILE_GAME_KEY = "bingo_latest_mobile_game_v1";
 
 const elements = {
   form: document.getElementById("bingoForm"),
@@ -32,8 +33,11 @@ const elements = {
   createMobile: document.getElementById("createMobileBtn"),
   mobileResult: document.getElementById("mobileResult"),
   mobileLink: document.getElementById("mobileLink"),
+  resultsLink: document.getElementById("resultsLink"),
   copyLink: document.getElementById("copyLinkBtn"),
+  copyResults: document.getElementById("copyResultsBtn"),
   openGame: document.getElementById("openGameBtn"),
+  openResults: document.getElementById("openResultsBtn"),
   status: document.getElementById("status"),
   emojiModal: document.getElementById("emojiModal"),
   openEmoji: document.getElementById("openEmojiPicker"),
@@ -401,26 +405,72 @@ function getMobilePageUrl() {
   return new URL("mobile.html", window.location.href);
 }
 
+function rememberMobileGame(gameUrl, resultsUrl, expiresAt) {
+  try {
+    localStorage.setItem(LATEST_MOBILE_GAME_KEY, JSON.stringify({ gameUrl, resultsUrl, expiresAt }));
+  } catch (error) {
+    // The generated links still work if local storage is unavailable.
+  }
+}
+
+function restoreLatestMobileGame() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(LATEST_MOBILE_GAME_KEY));
+    if (!saved?.gameUrl || !saved?.resultsUrl || Date.now() > saved.expiresAt) return;
+    elements.mobileLink.value = saved.gameUrl;
+    elements.resultsLink.value = saved.resultsUrl;
+    elements.mobileResult.hidden = false;
+    setStatus("Your most recent game and private results links were restored.");
+  } catch (error) {
+    // Ignore unavailable or invalid local storage data.
+  }
+}
+
 async function createMobileGame() {
   const game = validateGame();
   if (!game) return;
   elements.createMobile.disabled = true;
   setStatus("Creating your mobile game…");
   try {
+    const createdAt = Date.now();
+    const expiresAt = createdAt + GAME_LIFETIME_MS;
+    const registrationResponse = await fetch("/api/create-game", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title: game.title, expiresAt }),
+    });
+    const registration = await registrationResponse.json().catch(() => ({}));
+    if (!registrationResponse.ok) {
+      throw new Error(registration.error || "Player-data collection could not be created.");
+    }
     const payload = {
       ...game,
-      version: 1,
-      createdAt: Date.now(),
-      expiresAt: Date.now() + GAME_LIFETIME_MS,
+      version: 2,
+      createdAt,
+      expiresAt,
+      collection: {
+        gameId: registration.gameId,
+        writeKey: registration.writeKey,
+      },
     };
     const encoded = await encodeGame(payload);
     const url = getMobilePageUrl();
     url.hash = `game=${encoded}`;
+    const resultsUrl = new URL("results.html", url);
+    resultsUrl.hash = new URLSearchParams({
+      game: registration.gameId,
+      key: registration.readKey,
+    }).toString();
     elements.mobileLink.value = url.toString();
+    elements.resultsLink.value = resultsUrl.toString();
+    rememberMobileGame(elements.mobileLink.value, elements.resultsLink.value, expiresAt);
     elements.mobileResult.hidden = false;
-    setStatus("Mobile game link created. Open it to test the guest board.");
+    setStatus("Game and private live-results links created.");
   } catch (error) {
-    setStatus("The mobile game could not be created. Try a shorter list or a current browser.", true);
+    const localHint = ["localhost", "127.0.0.1"].includes(window.location.hostname)
+      ? " Open this project through Netlify Dev to test data collection locally."
+      : "";
+    setStatus(`${error.message || "The mobile game could not be created."}${localHint}`, true);
   } finally {
     elements.createMobile.disabled = false;
   }
@@ -435,6 +485,16 @@ async function copyMobileLink() {
     document.execCommand("copy");
     setStatus("Mobile game link copied.");
   }
+}
+
+async function copyTextField(field, successMessage) {
+  try {
+    await navigator.clipboard.writeText(field.value);
+  } catch (error) {
+    field.select();
+    document.execCommand("copy");
+  }
+  setStatus(successMessage);
 }
 
 function renderEmojiGrid(search = "") {
@@ -493,9 +553,14 @@ elements.clearCards.addEventListener("click", () => {
 });
 elements.createMobile.addEventListener("click", createMobileGame);
 elements.copyLink.addEventListener("click", copyMobileLink);
+elements.copyResults.addEventListener("click", () => copyTextField(elements.resultsLink, "Private results link copied."));
 elements.openGame.addEventListener("click", () => {
   if (!elements.mobileLink.value) return;
   window.open(elements.mobileLink.value, "_blank", "noopener");
+});
+elements.openResults.addEventListener("click", () => {
+  if (!elements.resultsLink.value) return;
+  window.open(elements.resultsLink.value, "_blank", "noopener");
 });
 elements.openEmoji.addEventListener("click", () => openEmojiPicker(elements.emoji));
 elements.openWinEmoji.addEventListener("click", () => openEmojiPicker(elements.winEmoji));
@@ -511,3 +576,4 @@ document.addEventListener("keydown", (event) => {
 updateItemSummary();
 renderEmojiGrid();
 renderSavedLists();
+restoreLatestMobileGame();

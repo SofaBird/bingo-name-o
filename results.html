@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow" />
+    <title>Bingo Results</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="results.css" />
+  </head>
+  <body>
+    <main class="results-shell">
+      <header class="results-header">
+        <div>
+          <p class="eyebrow">Bingo Name-o</p>
+          <h1 id="gameTitle">Results</h1>
+          <p id="lastUpdated" class="muted">Loading player data…</p>
+        </div>
+        <div class="header-actions">
+          <button id="refreshBtn" class="button secondary" type="button">Refresh</button>
+          <button id="downloadBtn" class="button primary" type="button" disabled>Download CSV</button>
+        </div>
+      </header>
+
+      <section id="errorState" class="notice error" hidden></section>
+
+      <section id="dashboard" hidden>
+        <div class="summary-grid" aria-label="Game summary">
+          <article><strong id="playerCount">0</strong><span>Players</span></article>
+          <article><strong id="entryCount">0</strong><span>Names Entered</span></article>
+          <article><strong id="bingoCount">0</strong><span>Players with Bingo</span></article>
+          <article><strong id="boardCount">0</strong><span>Boards Played</span></article>
+        </div>
+
+        <div class="ranking-grid">
+          <section class="panel">
+            <h2>Most Selected Squares</h2>
+            <div id="squareRanking" class="ranking-list"></div>
+          </section>
+          <section class="panel">
+            <h2>Most Entered Names</h2>
+            <div id="nameRanking" class="ranking-list"></div>
+          </section>
+        </div>
+
+        <section class="panel players-panel">
+          <div class="panel-heading">
+            <h2>Anonymous Players</h2>
+            <span id="autoRefreshNote" class="muted">Refreshes every 15 seconds</span>
+          </div>
+          <div id="playerList" class="player-list"></div>
+        </section>
+      </section>
+    </main>
+    <script src="results.js"></script>
+  </body>
+</html>

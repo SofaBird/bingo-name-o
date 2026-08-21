@@ -29,6 +29,9 @@ let gameKey = "";
 let state = null;
 let activeCellIndex = null;
 let lastFocusedCell = null;
+let syncTimer = null;
+let syncInFlight = false;
+let syncAgain = false;
 
 const THEMES = ["black", "red", "green", "blue", "yellow", "purple"];
 const THEME_COLORS = {
@@ -121,7 +124,13 @@ function shuffle(values) {
   return result;
 }
 
-function buildBoard() {
+function randomId(bytes = 12) {
+  const values = new Uint8Array(bytes);
+  crypto.getRandomValues(values);
+  return Array.from(values, (value) => value.toString(16).padStart(2, "0")).join("");
+}
+
+function buildBoard(previous = {}) {
   const choices = shuffle(gameData.phrases).slice(0, 24);
   const cells = [];
   let phraseIndex = 0;
@@ -129,7 +138,16 @@ function buildBoard() {
     if (index === 12) cells.push({ type: "free", prompt: "FREE", marked: true, guest: "" });
     else cells.push({ type: "phrase", prompt: choices[phraseIndex++], marked: false, guest: "" });
   }
-  return { cells, celebratedLines: [], theme: randomTheme() };
+  return {
+    cells,
+    celebratedLines: [],
+    theme: randomTheme(),
+    playerId: previous.playerId || randomId(),
+    startedAt: previous.startedAt || Date.now(),
+    boardId: randomId(8),
+    boardNumber: previous.boardNumber || 1,
+    history: Array.isArray(previous.history) ? previous.history.slice(-11) : [],
+  };
 }
 
 function getStorageKey() {
@@ -147,6 +165,65 @@ function loadState() {
 
 function saveState() {
   localStorage.setItem(getStorageKey(), JSON.stringify(state));
+}
+
+function boardSnapshot(source = state) {
+  return {
+    id: source.boardId,
+    number: source.boardNumber,
+    theme: source.theme,
+    hadBingo: Array.isArray(source.celebratedLines) && source.celebratedLines.length > 0,
+    entries: source.cells
+      .map((cell, position) => ({ position, prompt: cell.prompt, name: cell.guest }))
+      .filter((entry) => entry.prompt && entry.name),
+  };
+}
+
+function progressPayload() {
+  return {
+    gameId: gameData.collection.gameId,
+    writeKey: gameData.collection.writeKey,
+    playerId: state.playerId,
+    startedAt: state.startedAt,
+    boards: [...state.history, boardSnapshot()],
+  };
+}
+
+async function syncProgress() {
+  if (!gameData?.collection?.gameId || !gameData?.collection?.writeKey || !state) return;
+  if (syncInFlight) {
+    syncAgain = true;
+    return;
+  }
+  syncInFlight = true;
+  try {
+    const response = await fetch("/api/save-progress", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(progressPayload()),
+      keepalive: true,
+    });
+    if (!response.ok) {
+      const error = new Error("Progress sync failed");
+      error.retry = response.status >= 500 || response.status === 429;
+      throw error;
+    }
+  } catch (error) {
+    syncAgain = error.retry !== false;
+  } finally {
+    syncInFlight = false;
+    if (syncAgain) {
+      syncAgain = false;
+      clearTimeout(syncTimer);
+      syncTimer = setTimeout(syncProgress, 4000);
+    }
+  }
+}
+
+function queueProgressSync(delay = 350) {
+  if (!gameData?.collection) return;
+  clearTimeout(syncTimer);
+  syncTimer = setTimeout(syncProgress, delay);
 }
 
 function renderBoard() {
@@ -214,6 +291,7 @@ function saveEntry() {
   renderBoard();
   closeEntry();
   checkForBingo();
+  queueProgressSync();
 }
 
 function winningLines() {
@@ -280,6 +358,11 @@ async function initialize() {
     state = loadState() || buildBoard();
     if (!Array.isArray(state.celebratedLines)) state.celebratedLines = [];
     if (!THEMES.includes(state.theme)) state.theme = randomTheme();
+    if (!state.playerId) state.playerId = randomId();
+    if (!state.startedAt) state.startedAt = Date.now();
+    if (!state.boardId) state.boardId = randomId(8);
+    if (!state.boardNumber) state.boardNumber = 1;
+    if (!Array.isArray(state.history)) state.history = [];
     applyTheme(state.theme);
     window.clarity?.("set", "card_theme", state.theme);
     saveState();
@@ -294,6 +377,7 @@ async function initialize() {
     elements.game.hidden = false;
     renderBoard();
     checkForBingo();
+    queueProgressSync(100);
   } catch (error) {
     showError("This game link is invalid or cannot be opened in this browser.");
   }
@@ -301,10 +385,17 @@ async function initialize() {
 
 elements.reset.addEventListener("click", () => {
   if (!window.confirm("Create a new randomized board? Your current names will be cleared.")) return;
-  state = buildBoard();
+  const history = [...state.history, boardSnapshot()].slice(-11);
+  state = buildBoard({
+    playerId: state.playerId,
+    startedAt: state.startedAt,
+    boardNumber: state.boardNumber + 1,
+    history,
+  });
   applyTheme(state.theme);
   saveState();
   renderBoard();
+  queueProgressSync();
   window.clarity?.("event", "new_board");
 });
 elements.cancelEntry.addEventListener("click", closeEntry);
@@ -323,6 +414,14 @@ document.addEventListener("keydown", (event) => {
   if (event.key !== "Escape") return;
   if (elements.winModal.classList.contains("active")) closeWin();
   else if (elements.entryModal.classList.contains("active")) closeEntry();
+});
+window.addEventListener("online", () => queueProgressSync(50));
+window.addEventListener("pagehide", () => {
+  clearTimeout(syncTimer);
+  syncProgress();
+});
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "hidden") queueProgressSync(0);
 });
 
 initialize();
