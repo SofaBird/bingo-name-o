@@ -1,0 +1,65 @@
+:root {
+  --ink: #17131d;
+  --muted: #6f6877;
+  --paper: #f4f4f2;
+  --panel: #fff;
+  --line: #ddd9df;
+  --accent: #3d245c;
+  --accent-soft: #eee8f3;
+  --danger: #922f3e;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; color: var(--ink); background: var(--paper); font-family: "Inter", system-ui, sans-serif; }
+button { font: inherit; cursor: pointer; }
+[hidden] { display: none !important; }
+.results-shell { width: min(1100px, calc(100% - 32px)); margin: 0 auto; padding: 30px 0 60px; }
+.results-header { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; margin-bottom: 22px; }
+.eyebrow { margin: 0 0 6px; color: var(--accent); font-size: 12px; font-weight: 700; }
+h1 { margin: 0; font-size: clamp(24px, 5vw, 38px); letter-spacing: -.04em; }
+.muted { margin: 6px 0 0; color: var(--muted); font-size: 12px; }
+.header-actions { display: flex; gap: 8px; }
+.button { min-height: 36px; padding: 8px 13px; border: 1px solid transparent; border-radius: 5px; font-size: 13px; font-weight: 700; }
+.button.primary { color: #fff; background: var(--accent); }
+.button.secondary { color: var(--ink); background: var(--panel); border-color: #c9c5ca; }
+.button:disabled { cursor: not-allowed; opacity: .45; }
+.notice { padding: 16px; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; font-size: 13px; }
+.notice.error { color: var(--danger); border-color: #e3c5ca; background: #fff7f8; }
+.summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 10px; }
+.summary-grid article, .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; }
+.summary-grid article { padding: 16px; }
+.summary-grid strong { display: block; font-size: 26px; letter-spacing: -.04em; }
+.summary-grid span { color: var(--muted); font-size: 12px; }
+.ranking-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+.panel { padding: 16px; }
+.panel h2 { margin: 0 0 13px; font-size: 14px; }
+.ranking-list { display: grid; gap: 7px; }
+.ranking-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; font-size: 12px; }
+.ranking-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ranking-count { min-width: 28px; padding: 3px 6px; color: var(--accent); background: var(--accent-soft); border-radius: 999px; font-weight: 700; text-align: center; }
+.ranking-count:is(button) { border: 0; cursor: pointer; }
+.ranking-count:is(button):hover { color: #fff; background: var(--accent); }
+.ranking-count:is(button):focus-visible { outline: 3px solid rgba(61, 36, 92, .22); outline-offset: 2px; }
+.ranking-details { grid-column: 1 / -1; margin: 2px 0 5px; padding: 9px 10px; color: var(--muted); background: #f8f6f9; border-radius: 4px; }
+.ranking-details strong { display: block; margin-bottom: 5px; color: var(--ink); font-size: 11px; }
+.ranking-details ul { margin: 0; padding-left: 18px; font-size: 11px; line-height: 1.55; }
+.empty { margin: 0; color: var(--muted); font-size: 12px; }
+.panel-heading { display: flex; align-items: center; justify-content: space-between; gap: 15px; }
+.panel-heading h2 { margin-bottom: 0; }
+.player-list { display: grid; gap: 8px; margin-top: 13px; }
+.player { border: 1px solid var(--line); border-radius: 5px; }
+.player summary { display: grid; grid-template-columns: minmax(0, 1fr) repeat(3, auto); gap: 14px; align-items: center; padding: 10px 12px; cursor: pointer; font-size: 12px; }
+.player summary strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.player summary span { color: var(--muted); }
+.player-boards { padding: 0 12px 12px; }
+.board { margin-top: 8px; padding-top: 9px; border-top: 1px solid var(--line); }
+.board h3 { margin: 0 0 7px; font-size: 12px; }
+.board ul { margin: 0; padding-left: 18px; color: var(--muted); font-size: 12px; line-height: 1.55; }
+
+@media (max-width: 700px) {
+  .results-header { align-items: flex-start; flex-direction: column; }
+  .summary-grid { grid-template-columns: 1fr 1fr; }
+  .ranking-grid { grid-template-columns: 1fr; }
+  .player summary { grid-template-columns: minmax(0, 1fr) auto; }
+  .player summary span:nth-of-type(2), .player summary span:nth-of-type(3) { display: none; }
+}
