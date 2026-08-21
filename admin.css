@@ -1,9 +1,9 @@
-.login-panel { max-width: 500px; }
-.login-panel > .muted { margin-bottom: 16px; }
-.login-form label { display: block; margin-bottom: 6px; font-size: 12px; font-weight: 700; }
-.login-row { display: flex; gap: 8px; }
-.login-row input { min-width: 0; flex: 1; padding: 8px 10px; border: 1px solid #c9c5ca; border-radius: 5px; font: inherit; font-size: 13px; }
-.login-row input:focus { outline: 3px solid rgba(61, 36, 92, .15); border-color: var(--accent); }
+.login-mode { background: #fff; font-family: "Courier New", Courier, monospace; }
+.login-mode .results-shell { width: auto; margin: 0; padding: 24px; }
+.login-panel { width: 220px; }
+.login-form input { width: 100%; padding: 5px 6px; border: 1px solid #777; border-radius: 0; background: #fff; color: #000; font: 13px "Courier New", Courier, monospace; }
+.login-form input:focus { outline: 1px solid #000; outline-offset: 1px; }
+.login-mode .notice.error { width: 360px; max-width: 100%; margin-top: 10px; padding: 0; border: 0; background: transparent; color: #000; font: 12px "Courier New", Courier, monospace; }
 .catalog-heading { margin-bottom: 13px; }
 .table-wrap { overflow-x: auto; }
 .game-table { width: 100%; border-collapse: collapse; font-size: 12px; }
@@ -20,7 +20,6 @@
 
 @media (max-width: 700px) {
   .admin-header { flex-direction: row; align-items: flex-end; }
-  .login-row { align-items: stretch; flex-direction: column; }
   .game-table th:nth-child(4), .game-table td:nth-child(4),
   .game-table th:nth-child(5), .game-table td:nth-child(5),
   .game-table th:nth-child(6), .game-table td:nth-child(6) { display: none; }

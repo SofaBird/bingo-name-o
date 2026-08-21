@@ -12,9 +12,9 @@
     <link rel="stylesheet" href="results.css" />
     <link rel="stylesheet" href="admin.css" />
   </head>
-  <body>
+  <body class="login-mode">
     <main class="results-shell">
-      <header class="results-header admin-header">
+      <header id="dashboardHeader" class="results-header admin-header" hidden>
         <div>
           <p class="eyebrow">Bingo Name-o</p>
           <h1 id="pageTitle">Organizer Dashboard</h1>
@@ -26,15 +26,11 @@
         </div>
       </header>
 
-      <section id="loginPanel" class="panel login-panel">
-        <h2>Admin Access</h2>
-        <p class="muted">Enter the organizer password configured in Netlify.</p>
+      <section id="loginPanel" class="login-panel">
         <form id="loginForm" class="login-form">
-          <label for="adminPassword">Password</label>
-          <div class="login-row">
-            <input id="adminPassword" type="password" autocomplete="current-password" required />
-            <button class="button primary" type="submit">Open Dashboard</button>
-          </div>
+          <label class="visually-hidden" for="adminPassword">Password</label>
+          <input id="adminPassword" type="password" placeholder="Password" autocomplete="current-password" required autofocus />
+          <button class="visually-hidden" type="submit">Log in</button>
         </form>
       </section>
 

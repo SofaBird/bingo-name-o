@@ -1,6 +1,7 @@
 const elements = {
   title: document.getElementById("pageTitle"),
   subtitle: document.getElementById("pageSubtitle"),
+  header: document.getElementById("dashboardHeader"),
   loginPanel: document.getElementById("loginPanel"),
   loginForm: document.getElementById("loginForm"),
   password: document.getElementById("adminPassword"),
@@ -253,12 +254,16 @@ async function loadCurrentView() {
     if (gameId) renderGame(data);
     else renderCatalog(Array.isArray(data.games) ? data.games : []);
     elements.loginPanel.hidden = true;
+    elements.header.hidden = false;
+    document.body.classList.remove("login-mode");
     elements.logout.hidden = false;
     elements.refresh.hidden = false;
   } catch (error) {
     if (error.status === 401) {
       password = "";
       elements.loginPanel.hidden = false;
+      elements.header.hidden = true;
+      document.body.classList.add("login-mode");
       elements.logout.hidden = true;
       elements.refresh.hidden = true;
       elements.catalog.hidden = true;
@@ -327,6 +332,8 @@ elements.logout.addEventListener("click", () => {
   password = "";
   elements.password.value = "";
   elements.loginPanel.hidden = false;
+  elements.header.hidden = true;
+  document.body.classList.add("login-mode");
   elements.catalog.hidden = true;
   elements.detail.hidden = true;
   elements.logout.hidden = true;
