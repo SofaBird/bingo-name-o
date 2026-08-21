@@ -189,8 +189,9 @@ function formatDate(timestamp) {
 
 function renderCatalog(games) {
   latestData = null;
-  elements.title.textContent = "Organizer Dashboard";
-  elements.subtitle.textContent = "All mobile game instances in one place.";
+  elements.title.textContent = "Admin";
+  elements.subtitle.textContent = "";
+  elements.subtitle.hidden = true;
   document.title = "Bingo Name-o Admin";
   elements.gameCount.textContent = games.length;
   elements.totalPlayers.textContent = games.reduce((total, game) => total + game.playerCount, 0);
@@ -238,6 +239,7 @@ function renderGame(data) {
   const entries = players.flatMap(allEntries);
   elements.title.textContent = data.game.title;
   elements.subtitle.textContent = `Created ${formatDate(data.game.createdAt)} · Expires ${formatDate(data.game.expiresAt)}`;
+  elements.subtitle.hidden = false;
   document.title = `${data.game.title} · Admin Results`;
   elements.playerCount.textContent = players.length;
   elements.entryCount.textContent = entries.length;

@@ -81,8 +81,6 @@ textarea { min-height: 218px; resize: vertical; line-height: 1.45; }
 .mobile-result[hidden] { display: none; }
 .mobile-result > p { margin: 10px 0 16px; color: var(--muted); font-size: 12px; line-height: 1.5; text-align: center; }
 .result-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.private-results-field { margin-top: 16px !important; padding-top: 14px; border-top: 1px solid var(--line); }
-.private-results-field small { line-height: 1.4; }
 .status { min-height: 18px; margin: 18px 0 0; color: var(--success); font-size: 13px; line-height: 1.45; }
 .status.error { color: var(--danger); }
 .list-status { margin-top: 12px; }
