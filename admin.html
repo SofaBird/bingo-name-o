@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex,nofollow" />
     <title>Bingo Name-o Admin</title>
-    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="favicon.svg?v=2" type="image/svg+xml" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -72,7 +72,10 @@
       <section id="gameDetail" hidden>
         <div class="detail-actions">
           <button id="backBtn" class="button secondary" type="button">← All Games</button>
-          <button id="downloadBtn" class="button primary" type="button" disabled>Download CSV</button>
+          <div class="detail-primary-actions">
+            <a id="openMobileBtn" class="button secondary" href="#" target="_blank" rel="noopener" hidden>Open Mobile Game</a>
+            <button id="downloadBtn" class="button primary" type="button" disabled>Download CSV</button>
+          </div>
         </div>
 
         <div class="summary-grid" aria-label="Game summary">

@@ -16,10 +16,14 @@
 .game-title-cell span { display: block; margin-top: 3px; color: var(--muted); font-size: 10px; }
 .game-table .button { min-height: 30px; padding: 5px 9px; font-size: 11px; white-space: nowrap; }
 .detail-actions { display: flex; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+.detail-primary-actions { display: flex; gap: 8px; }
+.detail-primary-actions .button { display: inline-flex; align-items: center; text-decoration: none; }
 .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 
 @media (max-width: 700px) {
   .admin-header { flex-direction: row; align-items: flex-end; }
+  .detail-actions { align-items: flex-start; }
+  .detail-primary-actions { align-items: stretch; flex-direction: column; }
   .game-table th:nth-child(4), .game-table td:nth-child(4),
   .game-table th:nth-child(5), .game-table td:nth-child(5),
   .game-table th:nth-child(6), .game-table td:nth-child(6) { display: none; }

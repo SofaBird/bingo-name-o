@@ -17,6 +17,7 @@ const elements = {
   totalBingos: document.getElementById("totalBingos"),
   detail: document.getElementById("gameDetail"),
   back: document.getElementById("backBtn"),
+  openMobile: document.getElementById("openMobileBtn"),
   download: document.getElementById("downloadBtn"),
   playerCount: document.getElementById("playerCount"),
   entryCount: document.getElementById("entryCount"),
@@ -237,6 +238,13 @@ function renderGame(data) {
   elements.bingoCount.textContent = players.filter((player) => allBoards(player).some((board) => board.hadBingo)).length;
   elements.boardCount.textContent = boards.length;
   elements.detailUpdated.textContent = `Updated ${new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit", second: "2-digit" })}`;
+  if (data.game.mobilePath) {
+    elements.openMobile.href = new URL(data.game.mobilePath, window.location.origin).toString();
+    elements.openMobile.hidden = false;
+  } else {
+    elements.openMobile.removeAttribute("href");
+    elements.openMobile.hidden = true;
+  }
   renderRanking(elements.squareRanking, countValues(entries, "prompt"), "No squares have been selected yet.");
   renderRanking(elements.nameRanking, countValues(entries, "name"), "No names have been entered yet.", entries);
   renderPlayers(players);

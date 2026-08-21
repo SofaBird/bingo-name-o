@@ -340,6 +340,23 @@ function showError(message) {
   elements.errorState.hidden = false;
 }
 
+function registerMobileLink() {
+  const collection = gameData?.collection;
+  if (!collection?.gameId || !collection?.writeKey) return;
+  fetch("/api/save-game-link", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      gameId: collection.gameId,
+      writeKey: collection.writeKey,
+      mobilePath: `${window.location.pathname}${window.location.search}${window.location.hash}`,
+    }),
+    keepalive: true,
+  }).catch(() => {
+    // Player progress still works if an older game's admin link cannot be backfilled.
+  });
+}
+
 async function initialize() {
   const gameParameter = getGameParameter();
   if (!gameParameter) {
@@ -356,6 +373,7 @@ async function initialize() {
       showError("This game expired after 90 days. Ask the organizer to create a fresh link.");
       return;
     }
+    registerMobileLink();
     gameKey = hashString(gameParameter);
     startClarity(gameKey);
     state = loadState() || buildBoard();

@@ -90,6 +90,7 @@ export default async function adminResults(request) {
         title: game.title,
         createdAt: game.createdAt,
         expiresAt: gameExpiresAt(game),
+        mobilePath: game.mobilePath || "",
       },
       players,
     });

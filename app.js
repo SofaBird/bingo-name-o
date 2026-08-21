@@ -456,6 +456,19 @@ async function createMobileGame() {
     const encoded = await encodeGame(payload);
     const url = getMobilePageUrl();
     url.hash = `game=${encoded}`;
+    const linkRegistrationResponse = await fetch("/api/save-game-link", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        gameId: registration.gameId,
+        writeKey: registration.writeKey,
+        mobilePath: `${url.pathname}${url.search}${url.hash}`,
+      }),
+    });
+    if (!linkRegistrationResponse.ok) {
+      const linkError = await linkRegistrationResponse.json().catch(() => ({}));
+      throw new Error(linkError.error || "The mobile link could not be added to the organizer dashboard.");
+    }
     const resultsUrl = new URL("results.html", url);
     resultsUrl.hash = new URLSearchParams({
       game: registration.gameId,
