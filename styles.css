@@ -88,7 +88,7 @@ textarea { min-height: 218px; resize: vertical; line-height: 1.45; }
 .list-status { margin-top: 12px; }
 .preview-section { margin-top: 32px; }
 .site-footer { display: flex; justify-content: flex-end; gap: 5px; margin-top: 28px; color: #8a8a84; font-size: 11px; text-align: right; }
-.site-footer a { color: inherit; }
+.site-footer a { color: inherit; text-decoration: none; }
 .preview-heading { display: flex; align-items: end; justify-content: space-between; gap: 20px; margin-bottom: 20px; }
 .cards { display: flex; flex-direction: column; gap: 20px; }
 .print-page { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
