@@ -33,11 +33,8 @@ const elements = {
   createMobile: document.getElementById("createMobileBtn"),
   mobileResult: document.getElementById("mobileResult"),
   mobileLink: document.getElementById("mobileLink"),
-  resultsLink: document.getElementById("resultsLink"),
   copyLink: document.getElementById("copyLinkBtn"),
-  copyResults: document.getElementById("copyResultsBtn"),
   openGame: document.getElementById("openGameBtn"),
-  openResults: document.getElementById("openResultsBtn"),
   status: document.getElementById("status"),
   emojiModal: document.getElementById("emojiModal"),
   openEmoji: document.getElementById("openEmojiPicker"),
@@ -405,9 +402,9 @@ function getMobilePageUrl() {
   return new URL("mobile.html", window.location.href);
 }
 
-function rememberMobileGame(gameUrl, resultsUrl, expiresAt) {
+function rememberMobileGame(gameUrl, expiresAt) {
   try {
-    localStorage.setItem(LATEST_MOBILE_GAME_KEY, JSON.stringify({ gameUrl, resultsUrl, expiresAt }));
+    localStorage.setItem(LATEST_MOBILE_GAME_KEY, JSON.stringify({ gameUrl, expiresAt }));
   } catch (error) {
     // The generated links still work if local storage is unavailable.
   }
@@ -416,11 +413,10 @@ function rememberMobileGame(gameUrl, resultsUrl, expiresAt) {
 function restoreLatestMobileGame() {
   try {
     const saved = JSON.parse(localStorage.getItem(LATEST_MOBILE_GAME_KEY));
-    if (!saved?.gameUrl || !saved?.resultsUrl || Date.now() > saved.expiresAt) return;
+    if (!saved?.gameUrl || Date.now() > saved.expiresAt) return;
     elements.mobileLink.value = saved.gameUrl;
-    elements.resultsLink.value = saved.resultsUrl;
     elements.mobileResult.hidden = false;
-    setStatus("Your most recent game and private results links were restored.");
+    setStatus("Your most recent game link was restored.");
   } catch (error) {
     // Ignore unavailable or invalid local storage data.
   }
@@ -469,16 +465,10 @@ async function createMobileGame() {
       const linkError = await linkRegistrationResponse.json().catch(() => ({}));
       throw new Error(linkError.error || "The mobile link could not be added to the organizer dashboard.");
     }
-    const resultsUrl = new URL("results.html", url);
-    resultsUrl.hash = new URLSearchParams({
-      game: registration.gameId,
-      key: registration.readKey,
-    }).toString();
     elements.mobileLink.value = url.toString();
-    elements.resultsLink.value = resultsUrl.toString();
-    rememberMobileGame(elements.mobileLink.value, elements.resultsLink.value, expiresAt);
+    rememberMobileGame(elements.mobileLink.value, expiresAt);
     elements.mobileResult.hidden = false;
-    setStatus("Game and private live-results links created.");
+    setStatus("Game link created.");
   } catch (error) {
     const localHint = ["localhost", "127.0.0.1"].includes(window.location.hostname)
       ? " Open this project through Netlify Dev to test data collection locally."
@@ -566,14 +556,9 @@ elements.clearCards.addEventListener("click", () => {
 });
 elements.createMobile.addEventListener("click", createMobileGame);
 elements.copyLink.addEventListener("click", copyMobileLink);
-elements.copyResults.addEventListener("click", () => copyTextField(elements.resultsLink, "Private results link copied."));
 elements.openGame.addEventListener("click", () => {
   if (!elements.mobileLink.value) return;
   window.open(elements.mobileLink.value, "_blank", "noopener");
-});
-elements.openResults.addEventListener("click", () => {
-  if (!elements.resultsLink.value) return;
-  window.open(elements.resultsLink.value, "_blank", "noopener");
 });
 elements.openEmoji.addEventListener("click", () => openEmojiPicker(elements.emoji));
 elements.openWinEmoji.addEventListener("click", () => openEmojiPicker(elements.winEmoji));
