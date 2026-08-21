@@ -58,7 +58,7 @@ function countValues(entries, property) {
   return [...counts.values()].sort((a, b) => b.count - a.count || a.display.localeCompare(b.display));
 }
 
-function renderRanking(container, values, emptyMessage) {
+function renderRanking(container, values, emptyMessage, entryDetails = null) {
   container.replaceChildren();
   if (!values.length) {
     const empty = document.createElement("p");
@@ -67,17 +67,48 @@ function renderRanking(container, values, emptyMessage) {
     container.appendChild(empty);
     return;
   }
-  values.slice(0, 15).forEach(({ display, count }) => {
+  values.slice(0, 15).forEach(({ display, count }, index) => {
     const row = document.createElement("div");
     row.className = "ranking-row";
     const label = document.createElement("span");
     label.className = "ranking-label";
     label.textContent = display;
     label.title = display;
-    const total = document.createElement("span");
+    const total = entryDetails ? document.createElement("button") : document.createElement("span");
     total.className = "ranking-count";
     total.textContent = count;
     row.append(label, total);
+
+    if (entryDetails) {
+      total.type = "button";
+      total.setAttribute("aria-expanded", "false");
+      total.setAttribute("aria-label", `Show squares assigned to ${display}`);
+      const details = document.createElement("div");
+      details.className = "ranking-details";
+      details.id = `name-squares-${index}`;
+      details.hidden = true;
+      total.setAttribute("aria-controls", details.id);
+
+      const heading = document.createElement("strong");
+      heading.textContent = `Squares assigned to ${display}`;
+      const list = document.createElement("ul");
+      const matchingEntries = entryDetails.filter((entry) => (
+        String(entry.name || "").trim().toLocaleLowerCase() === display.toLocaleLowerCase()
+      ));
+      countValues(matchingEntries, "prompt").forEach(({ display: prompt, count: promptCount }) => {
+        const item = document.createElement("li");
+        item.textContent = `${prompt}${promptCount > 1 ? ` (${promptCount})` : ""}`;
+        list.appendChild(item);
+      });
+      details.append(heading, list);
+      row.appendChild(details);
+
+      total.addEventListener("click", () => {
+        const willOpen = details.hidden;
+        details.hidden = !willOpen;
+        total.setAttribute("aria-expanded", String(willOpen));
+      });
+    }
     container.appendChild(row);
   });
 }
@@ -148,7 +179,7 @@ function render(data) {
   elements.bingoCount.textContent = players.filter((player) => allBoards(player).some((board) => board.hadBingo)).length;
   elements.boardCount.textContent = boards.length;
   renderRanking(elements.squareRanking, countValues(entries, "prompt"), "No squares have been selected yet.");
-  renderRanking(elements.nameRanking, countValues(entries, "name"), "No names have been entered yet.");
+  renderRanking(elements.nameRanking, countValues(entries, "name"), "No names have been entered yet.", entries);
   renderPlayers(players);
   elements.error.hidden = true;
   elements.dashboard.hidden = false;
