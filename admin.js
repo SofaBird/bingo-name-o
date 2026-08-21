@@ -17,6 +17,7 @@ const elements = {
   totalBingos: document.getElementById("totalBingos"),
   detail: document.getElementById("gameDetail"),
   back: document.getElementById("backBtn"),
+  mobileLinkRow: document.getElementById("mobileGameLinkRow"),
   openMobile: document.getElementById("openMobileBtn"),
   download: document.getElementById("downloadBtn"),
   playerCount: document.getElementById("playerCount"),
@@ -42,9 +43,10 @@ function clearError() {
   elements.error.textContent = "";
 }
 
-async function adminRequest(gameId = "") {
+async function adminRequest(gameId = "", options = {}) {
   const params = gameId ? `?${new URLSearchParams({ game: gameId })}` : "";
   const response = await fetch(`/api/admin-results${params}`, {
+    method: options.method || "GET",
     cache: "no-store",
     headers: { Authorization: `Bearer ${encodeURIComponent(password)}` },
   });
@@ -199,8 +201,11 @@ function renderCatalog(games) {
     const row = document.createElement("tr");
     const titleCell = document.createElement("td");
     titleCell.className = "game-title-cell";
-    const title = document.createElement("strong");
+    const title = document.createElement("button");
+    title.className = "game-title-link";
+    title.type = "button";
     title.textContent = game.title;
+    title.addEventListener("click", () => openGame(game.id));
     const expiration = document.createElement("span");
     expiration.textContent = `${Date.now() > game.expiresAt ? "Expired" : "Expires"} ${formatDate(game.expiresAt)}`;
     titleCell.append(title, expiration);
@@ -211,10 +216,11 @@ function renderCatalog(games) {
     });
     const actionCell = document.createElement("td");
     const view = document.createElement("button");
-    view.className = "button secondary";
+    view.className = "button delete-game";
     view.type = "button";
-    view.textContent = "View Results";
-    view.addEventListener("click", () => openGame(game.id));
+    view.textContent = "Delete";
+    view.setAttribute("aria-label", `Delete ${game.title}`);
+    view.addEventListener("click", () => deleteGame(game.id, game.title, view));
     actionCell.appendChild(view);
     row.prepend(titleCell);
     row.appendChild(actionCell);
@@ -240,10 +246,10 @@ function renderGame(data) {
   elements.detailUpdated.textContent = `Updated ${new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit", second: "2-digit" })}`;
   if (data.game.mobilePath) {
     elements.openMobile.href = new URL(data.game.mobilePath, window.location.origin).toString();
-    elements.openMobile.hidden = false;
+    elements.mobileLinkRow.hidden = false;
   } else {
     elements.openMobile.removeAttribute("href");
-    elements.openMobile.hidden = true;
+    elements.mobileLinkRow.hidden = true;
   }
   renderRanking(elements.squareRanking, countValues(entries, "prompt"), "No squares have been selected yet.");
   renderRanking(elements.nameRanking, countValues(entries, "name"), "No names have been entered yet.", entries);
@@ -298,6 +304,20 @@ function openCatalog() {
   url.searchParams.delete("game");
   window.history.pushState(null, "", url);
   loadCurrentView();
+}
+
+async function deleteGame(gameId, title, button) {
+  const confirmed = window.confirm(`Delete “${title}” and all of its player results? This cannot be undone.`);
+  if (!confirmed) return;
+  button.disabled = true;
+  clearError();
+  try {
+    await adminRequest(gameId, { method: "DELETE" });
+    await loadCurrentView();
+  } catch (error) {
+    showError(error.message);
+    button.disabled = false;
+  }
 }
 
 function csvCell(value) {

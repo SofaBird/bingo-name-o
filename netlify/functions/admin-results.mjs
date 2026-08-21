@@ -7,6 +7,10 @@ import {
   validIdentifier,
 } from "../lib/shared.mjs";
 
+const LEGACY_MOBILE_LINKS = new Map([
+  ["WGw6XPlV1h4Q", "https://tinyurl.com/marisajason"],
+]);
+
 function authorized(request) {
   const configuredPassword = process.env.BINGO_ADMIN_PASSWORD;
   const authorization = request.headers.get("authorization") || "";
@@ -68,8 +72,16 @@ async function loadPlayers(store, gameId) {
   return players;
 }
 
+async function deleteInBatches(store, keys) {
+  for (let index = 0; index < keys.length; index += 25) {
+    await Promise.all(keys.slice(index, index + 25).map((key) => store.delete(key)));
+  }
+}
+
 export default async function adminResults(request) {
-  if (request.method !== "GET") return json({ error: "Method not allowed" }, 405);
+  if (request.method !== "GET" && request.method !== "DELETE") {
+    return json({ error: "Method not allowed" }, 405);
+  }
   if (!process.env.BINGO_ADMIN_PASSWORD) {
     return json({ error: "Admin access has not been configured." }, 503);
   }
@@ -78,6 +90,17 @@ export default async function adminResults(request) {
   const store = getBingoStore();
   const url = new URL(request.url);
   const requestedGameId = url.searchParams.get("game");
+
+  if (request.method === "DELETE") {
+    if (!validIdentifier(requestedGameId)) return json({ error: "Invalid game ID." }, 400);
+    const gameKey = `games/${requestedGameId}.json`;
+    const game = await store.get(gameKey, { type: "json", consistency: "strong" });
+    if (!game) return json({ error: "Game not found." }, 404);
+    const playerBlobs = await listBlobs(store, `players/${requestedGameId}/`);
+    await deleteInBatches(store, playerBlobs.map(({ key }) => key));
+    await store.delete(gameKey);
+    return json({ deleted: true, playerRecordsDeleted: playerBlobs.length });
+  }
 
   if (requestedGameId) {
     if (!validIdentifier(requestedGameId)) return json({ error: "Invalid game ID." }, 400);
@@ -90,7 +113,7 @@ export default async function adminResults(request) {
         title: game.title,
         createdAt: game.createdAt,
         expiresAt: gameExpiresAt(game),
-        mobilePath: game.mobilePath || "",
+        mobilePath: game.mobilePath || LEGACY_MOBILE_LINKS.get(game.id) || "",
       },
       players,
     });

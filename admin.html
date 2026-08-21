@@ -59,7 +59,7 @@
                   <th>Entries</th>
                   <th>Bingos</th>
                   <th>Last Activity</th>
-                  <th><span class="visually-hidden">View</span></th>
+                  <th><span class="visually-hidden">Delete</span></th>
                 </tr>
               </thead>
               <tbody id="gameRows"></tbody>
@@ -72,10 +72,12 @@
       <section id="gameDetail" hidden>
         <div class="detail-actions">
           <button id="backBtn" class="button secondary" type="button">← All Games</button>
-          <div class="detail-primary-actions">
-            <a id="openMobileBtn" class="button secondary" href="#" target="_blank" rel="noopener" hidden>Open Mobile Game</a>
-            <button id="downloadBtn" class="button primary" type="button" disabled>Download CSV</button>
-          </div>
+          <button id="downloadBtn" class="button primary" type="button" disabled>Download CSV</button>
+        </div>
+
+        <div id="mobileGameLinkRow" class="mobile-game-link" hidden>
+          <strong>Mobile Game</strong>
+          <a id="openMobileBtn" href="#" target="_blank" rel="noopener">Open Mobile Game ↗</a>
         </div>
 
         <div class="summary-grid" aria-label="Game summary">
