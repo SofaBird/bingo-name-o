@@ -1,5 +1,5 @@
 const MINIMUM_ITEMS = 30;
-const GAME_LIFETIME_MS = 30 * 24 * 60 * 60 * 1000;
+const GAME_LIFETIME_MS = 90 * 24 * 60 * 60 * 1000;
 const SAVED_LISTS_KEY = "make_bingo_saved_lists_v1";
 const LATEST_MOBILE_GAME_KEY = "bingo_latest_mobile_game_v1";
 

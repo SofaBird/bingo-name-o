@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow" />
+    <title>Bingo Name-o Admin</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="results.css" />
+    <link rel="stylesheet" href="admin.css" />
+  </head>
+  <body>
+    <main class="results-shell">
+      <header class="results-header admin-header">
+        <div>
+          <p class="eyebrow">Bingo Name-o</p>
+          <h1 id="pageTitle">Organizer Dashboard</h1>
+          <p id="pageSubtitle" class="muted">All mobile game instances in one place.</p>
+        </div>
+        <div class="header-actions">
+          <button id="refreshBtn" class="button secondary" type="button" hidden>Refresh</button>
+          <button id="logoutBtn" class="button secondary" type="button" hidden>Log out</button>
+        </div>
+      </header>
+
+      <section id="loginPanel" class="panel login-panel">
+        <h2>Admin Access</h2>
+        <p class="muted">Enter the organizer password configured in Netlify.</p>
+        <form id="loginForm" class="login-form">
+          <label for="adminPassword">Password</label>
+          <div class="login-row">
+            <input id="adminPassword" type="password" autocomplete="current-password" required />
+            <button class="button primary" type="submit">Open Dashboard</button>
+          </div>
+        </form>
+      </section>
+
+      <section id="errorState" class="notice error" hidden></section>
+
+      <section id="catalog" hidden>
+        <div class="summary-grid" aria-label="All-game summary">
+          <article><strong id="gameCount">0</strong><span>Games Created</span></article>
+          <article><strong id="totalPlayers">0</strong><span>Total Players</span></article>
+          <article><strong id="totalEntries">0</strong><span>Names Entered</span></article>
+          <article><strong id="totalBingos">0</strong><span>Players with Bingo</span></article>
+        </div>
+
+        <section class="panel">
+          <div class="panel-heading catalog-heading">
+            <h2>Game Instances</h2>
+            <span class="muted">Player data is retained for 90 days</span>
+          </div>
+          <div class="table-wrap">
+            <table class="game-table">
+              <thead>
+                <tr>
+                  <th>Game</th>
+                  <th>Created</th>
+                  <th>Players</th>
+                  <th>Entries</th>
+                  <th>Bingos</th>
+                  <th>Last Activity</th>
+                  <th><span class="visually-hidden">View</span></th>
+                </tr>
+              </thead>
+              <tbody id="gameRows"></tbody>
+            </table>
+          </div>
+          <p id="emptyCatalog" class="empty" hidden>No mobile games have been created yet.</p>
+        </section>
+      </section>
+
+      <section id="gameDetail" hidden>
+        <div class="detail-actions">
+          <button id="backBtn" class="button secondary" type="button">← All Games</button>
+          <button id="downloadBtn" class="button primary" type="button" disabled>Download CSV</button>
+        </div>
+
+        <div class="summary-grid" aria-label="Game summary">
+          <article><strong id="playerCount">0</strong><span>Players</span></article>
+          <article><strong id="entryCount">0</strong><span>Names Entered</span></article>
+          <article><strong id="bingoCount">0</strong><span>Players with Bingo</span></article>
+          <article><strong id="boardCount">0</strong><span>Boards Played</span></article>
+        </div>
+
+        <div class="ranking-grid">
+          <section class="panel">
+            <h2>Most Selected Squares</h2>
+            <div id="squareRanking" class="ranking-list"></div>
+          </section>
+          <section class="panel">
+            <h2>Most Entered Names</h2>
+            <div id="nameRanking" class="ranking-list"></div>
+          </section>
+        </div>
+
+        <section class="panel players-panel">
+          <div class="panel-heading">
+            <h2>Anonymous Players</h2>
+            <span id="detailUpdated" class="muted"></span>
+          </div>
+          <div id="playerList" class="player-list"></div>
+        </section>
+      </section>
+    </main>
+    <script src="admin.js"></script>
+  </body>
+</html>

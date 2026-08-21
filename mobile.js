@@ -349,8 +349,11 @@ async function initialize() {
   try {
     gameData = await decodeGame(gameParameter);
     if (!Array.isArray(gameData.phrases) || gameData.phrases.length < 30) throw new Error("Not enough items");
-    if (gameData.expiresAt && Date.now() > gameData.expiresAt) {
-      showError("This game expired after 30 days. Ask the organizer to create a fresh link.");
+    const effectiveExpiry = gameData.createdAt
+      ? Math.max(Number(gameData.expiresAt) || 0, Number(gameData.createdAt) + (90 * 24 * 60 * 60 * 1000))
+      : Number(gameData.expiresAt) || 0;
+    if (effectiveExpiry && Date.now() > effectiveExpiry) {
+      showError("This game expired after 90 days. Ask the organizer to create a fresh link.");
       return;
     }
     gameKey = hashString(gameParameter);

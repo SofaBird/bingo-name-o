@@ -1,4 +1,4 @@
-import { getBingoStore } from "../lib/shared.mjs";
+import { gameExpiresAt, getBingoStore } from "../lib/shared.mjs";
 
 async function deleteInBatches(store, keys) {
   for (let index = 0; index < keys.length; index += 25) {
@@ -15,7 +15,7 @@ export default async function cleanupExpired() {
   for await (const page of store.list({ prefix: "games/", paginate: true })) {
     for (const blob of page.blobs) {
       const game = await store.get(blob.key, { type: "json", consistency: "strong" }).catch(() => null);
-      if (!game || !game.expiresAt || now <= game.expiresAt) continue;
+      if (!game || !gameExpiresAt(game) || now <= gameExpiresAt(game)) continue;
       const playerKeys = [];
       for await (const players of store.list({ prefix: `players/${game.id}/`, paginate: true })) {
         players.blobs.forEach(({ key }) => playerKeys.push(key));

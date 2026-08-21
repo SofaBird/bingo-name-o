@@ -1,4 +1,5 @@
 import {
+  gameExpiresAt,
   cleanText,
   getBingoStore,
   json,
@@ -42,7 +43,7 @@ export default async function saveProgress(request) {
   const store = getBingoStore();
   const game = await store.get(`games/${body.gameId}.json`, { type: "json", consistency: "strong" });
   if (!game) return json({ error: "Game not found." }, 404);
-  if (Date.now() > game.expiresAt) return json({ error: "This game has expired." }, 410);
+  if (Date.now() > gameExpiresAt(game)) return json({ error: "This game has expired." }, 410);
   if (!tokenMatches(body.writeKey, game.writeKeyHash)) return json({ error: "Invalid game key." }, 403);
 
   const boards = Array.isArray(body.boards)

@@ -2,10 +2,17 @@ import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
 import { getStore } from "@netlify/blobs";
 
 export const STORE_NAME = "bingo-player-data";
-export const MAX_GAME_AGE_MS = 31 * 24 * 60 * 60 * 1000;
+export const GAME_RETENTION_DAYS = 90;
+export const MAX_GAME_AGE_MS = GAME_RETENTION_DAYS * 24 * 60 * 60 * 1000;
 
 export function getBingoStore() {
   return getStore(STORE_NAME, { consistency: "strong" });
+}
+
+export function gameExpiresAt(game) {
+  const storedExpiry = Number(game?.expiresAt) || 0;
+  const retentionExpiry = (Number(game?.createdAt) || 0) + MAX_GAME_AGE_MS;
+  return Math.max(storedExpiry, retentionExpiry);
 }
 
 export function json(data, status = 200) {
