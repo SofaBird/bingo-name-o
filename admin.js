@@ -192,7 +192,7 @@ function renderCatalog(games) {
   elements.title.textContent = "Admin";
   elements.subtitle.textContent = "";
   elements.subtitle.hidden = true;
-  document.title = "Bingo Name-o Admin";
+  document.title = "Bingo Game-o Admin";
   elements.gameCount.textContent = games.length;
   elements.totalPlayers.textContent = games.reduce((total, game) => total + game.playerCount, 0);
   elements.totalEntries.textContent = games.reduce((total, game) => total + game.entryCount, 0);
