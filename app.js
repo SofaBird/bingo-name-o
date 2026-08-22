@@ -112,11 +112,12 @@ let lastFocusedElement = null;
 let emojiTarget = elements.emoji;
 
 function getMobileInteraction() {
-  return [...elements.mobileInteractions].find((input) => input.checked)?.value === "mark" ? "mark" : "name";
+  const selected = [...elements.mobileInteractions].find((input) => input.checked)?.value;
+  return ["name", "mark", "player"].includes(selected) ? selected : "name";
 }
 
 function setMobileInteraction(value) {
-  const selected = value === "mark" ? "mark" : "name";
+  const selected = ["name", "mark", "player"].includes(value) ? value : "name";
   elements.mobileInteractions.forEach((input) => { input.checked = input.value === selected; });
 }
 
