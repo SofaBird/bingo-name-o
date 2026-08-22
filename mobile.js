@@ -6,6 +6,7 @@ const elements = {
   themeColor: document.getElementById("themeColor"),
   gameTitle: document.getElementById("gameTitle"),
   rules: document.getElementById("rulesLine"),
+  hint: document.getElementById("gameHint"),
   grid: document.getElementById("cardGrid"),
   reset: document.getElementById("resetBtn"),
   entryModal: document.getElementById("entryModal"),
@@ -51,6 +52,10 @@ function applyTheme(theme) {
   const selected = THEMES.includes(theme) ? theme : "purple";
   document.body.dataset.theme = selected;
   elements.themeColor.setAttribute("content", THEME_COLORS[selected]);
+}
+
+function usesNameEntry() {
+  return gameData?.interactionMode !== "mark";
 }
 
 function getGameParameter() {
@@ -174,8 +179,9 @@ function boardSnapshot(source = state) {
     theme: source.theme,
     hadBingo: Array.isArray(source.celebratedLines) && source.celebratedLines.length > 0,
     entries: source.cells
-      .map((cell, position) => ({ position, prompt: cell.prompt, name: cell.guest }))
-      .filter((entry) => entry.prompt && entry.name),
+      .map((cell, position) => ({ position, prompt: cell.prompt, name: cell.guest, marked: cell.marked, type: cell.type }))
+      .filter((entry) => entry.type === "phrase" && entry.marked && entry.prompt)
+      .map(({ position, prompt, name }) => ({ position, prompt, name })),
   };
 }
 
@@ -231,7 +237,7 @@ function renderBoard() {
   state.cells.forEach((cell, index) => {
     const button = document.createElement("button");
     button.type = "button";
-    button.className = `card-cell${cell.type === "free" ? " free" : ""}${cell.marked && cell.type !== "free" ? " marked" : ""}`;
+    button.className = `card-cell${cell.type === "free" ? " free" : ""}${cell.marked && cell.type !== "free" ? " marked" : ""}${cell.type !== "free" && !usesNameEntry() ? " mark-only" : ""}`;
     if (cell.type === "free") {
       const emoji = document.createElement("span");
       emoji.className = "free-emoji";
@@ -250,11 +256,31 @@ function renderBoard() {
         guest.textContent = cell.guest;
         button.appendChild(guest);
       }
-      button.setAttribute("aria-label", `${cell.prompt}${cell.guest ? `, marked with ${cell.guest}. Tap to edit.` : ". Tap to add a name."}`);
-      button.addEventListener("click", () => openEntry(index, button));
+      if (usesNameEntry()) {
+        button.setAttribute("aria-label", `${cell.prompt}${cell.guest ? `, marked with ${cell.guest}. Tap to edit.` : ". Tap to add a name."}`);
+        button.addEventListener("click", () => openEntry(index, button));
+      } else {
+        button.setAttribute("aria-label", `${cell.prompt}${cell.marked ? ", marked. Tap to unmark." : ". Tap to mark."}`);
+        button.addEventListener("click", () => toggleMark(index));
+      }
     }
     elements.grid.appendChild(button);
   });
+}
+
+function toggleMark(index) {
+  const cell = state.cells[index];
+  cell.marked = !cell.marked;
+  cell.guest = "";
+  if (!cell.marked) {
+    state.celebratedLines = state.celebratedLines.filter((signature) => (
+      signature.split("-").every((position) => state.cells[Number(position)]?.marked)
+    ));
+  }
+  saveState();
+  renderBoard();
+  checkForBingo();
+  queueProgressSync();
 }
 
 function openEntry(index, button) {
@@ -320,10 +346,10 @@ function checkForBingo() {
 function renderWinDigest() {
   elements.winDigest.replaceChildren();
   state.cells
-    .filter((cell) => cell.type === "phrase" && cell.marked && cell.guest)
+    .filter((cell) => cell.type === "phrase" && cell.marked)
     .forEach((cell) => {
       const line = document.createElement("p");
-      line.textContent = `${cell.prompt}: ${cell.guest}`;
+      line.textContent = cell.guest ? `${cell.prompt}: ${cell.guest}` : cell.prompt;
       elements.winDigest.appendChild(line);
     });
 }
@@ -389,7 +415,12 @@ async function initialize() {
     saveState();
     document.title = `${gameData.title} · Bingo`;
     elements.gameTitle.textContent = gameData.title;
-    elements.rules.textContent = gameData.subtitle || "Find someone who matches each square and add their name.";
+    elements.rules.textContent = gameData.subtitle || (usesNameEntry()
+      ? "Find someone who matches each square and add their name."
+      : "Mark each square as you complete it.");
+    elements.hint.textContent = usesNameEntry()
+      ? "Tap a square to add a name. Tap it again to edit."
+      : "Tap a square to mark it. Tap it again to unmark it.";
     elements.winEmoji.textContent = gameData.winEmoji || "🎉";
     elements.winTitle.textContent = gameData.winTitle || "Bingo!";
     elements.winMessage.textContent = gameData.winMessage || "You completed a row. Nicely done.";
@@ -405,7 +436,10 @@ async function initialize() {
 }
 
 elements.reset.addEventListener("click", () => {
-  if (!window.confirm("Create a new randomized board? Your current names will be cleared.")) return;
+  const resetMessage = usesNameEntry()
+    ? "Create a new randomized board? Your current names will be cleared."
+    : "Create a new randomized board? Your current marks will be cleared.";
+  if (!window.confirm(resetMessage)) return;
   const history = [...state.history, boardSnapshot()].slice(-11);
   state = buildBoard({
     playerId: state.playerId,

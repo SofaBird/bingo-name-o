@@ -31,6 +31,7 @@ const elements = {
   cards: document.getElementById("cards"),
   preview: document.getElementById("previewSection"),
   createMobile: document.getElementById("createMobileBtn"),
+  mobileInteractions: document.querySelectorAll('input[name="mobileInteraction"]'),
   mobileResult: document.getElementById("mobileResult"),
   mobileLink: document.getElementById("mobileLink"),
   copyLink: document.getElementById("copyLinkBtn"),
@@ -64,6 +65,15 @@ const EMOJIS = [
 
 let lastFocusedElement = null;
 let emojiTarget = elements.emoji;
+
+function getMobileInteraction() {
+  return [...elements.mobileInteractions].find((input) => input.checked)?.value === "mark" ? "mark" : "name";
+}
+
+function setMobileInteraction(value) {
+  const selected = value === "mark" ? "mark" : "name";
+  elements.mobileInteractions.forEach((input) => { input.checked = input.value === selected; });
+}
 
 function setStatus(message, isError = false) {
   elements.status.textContent = message;
@@ -119,6 +129,7 @@ function saveCurrentList() {
     winButton: elements.winButton.value,
     items: elements.items.value,
     cardCount: elements.cardCount.value,
+    mobileInteraction: getMobileInteraction(),
     savedAt: Date.now(),
   };
   try {
@@ -146,6 +157,7 @@ function loadSelectedList() {
   elements.winButton.value = saved.winButton || "Keep playing";
   elements.items.value = saved.items || "";
   elements.cardCount.value = saved.cardCount || "4";
+  setMobileInteraction(saved.mobileInteraction);
   elements.listName.value = name;
   elements.csvFile.value = "";
   elements.fileName.textContent = "No file selected";
@@ -221,6 +233,7 @@ function validateGame() {
     winMessage: elements.winMessage.value.trim() || "You completed a row. Nicely done.",
     winButton: elements.winButton.value.trim() || "Keep playing",
     phrases: summary.unique,
+    interactionMode: getMobileInteraction(),
   };
 }
 
@@ -398,7 +411,7 @@ async function encodeGame(game) {
 }
 
 function getMobilePageUrl() {
-  if (window.location.protocol === "file:") return new URL("https://bingo-name-o.netlify.app/mobile.html");
+  if (window.location.protocol === "file:") return new URL("https://bingo-game-o.netlify.app/mobile.html");
   return new URL("mobile.html", window.location.href);
 }
 
@@ -555,6 +568,10 @@ elements.clearCards.addEventListener("click", () => {
   setStatus("Print preview cleared.");
 });
 elements.createMobile.addEventListener("click", createMobileGame);
+elements.mobileInteractions.forEach((input) => input.addEventListener("change", () => {
+  elements.mobileResult.hidden = true;
+  setStatus("");
+}));
 elements.copyLink.addEventListener("click", copyMobileLink);
 elements.openGame.addEventListener("click", () => {
   if (!elements.mobileLink.value) return;

@@ -18,7 +18,7 @@ function cleanBoard(board, index) {
       position: Math.max(0, Math.min(24, Number(entry?.position) || 0)),
       prompt: cleanText(entry?.prompt, 240),
       name: cleanText(entry?.name, 80),
-    })).filter((entry) => entry.prompt && entry.name)
+    })).filter((entry) => entry.prompt)
     : [];
 
   return {
