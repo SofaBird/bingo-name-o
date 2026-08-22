@@ -119,17 +119,6 @@
           <h2 class="section-title">How Do You Want to Play?</h2>
           <div class="play-options">
             <section class="output-option">
-              <h3>Print</h3>
-              <p>Four cards per US letter page.</p>
-              <label class="field compact">
-                <span>Number of Cards</span>
-                <input id="cardCount" type="number" min="1" max="200" value="4" />
-              </label>
-              <button id="generatePrintBtn" class="button primary full" type="button">Generate</button>
-              <button id="printBtn" class="button text full" type="button">Print / PDF</button>
-            </section>
-
-            <section class="output-option">
               <h3>Mobile</h3>
               <p>Each visitor gets their own board.</p>
               <fieldset class="mobile-mode">
@@ -148,19 +137,30 @@
                 </label>
               </fieldset>
               <button id="createMobileBtn" class="button primary full" type="button">Create game</button>
-            </section>
-          </div>
 
-          <div id="mobileResult" class="mobile-result" hidden>
-            <p>The game link gives each browser its own randomized card. Progress is saved automatically for 90 days.</p>
-            <label class="field compact" for="mobileLink">
-              <span>Shareable Game Link</span>
-              <input id="mobileLink" type="text" readonly />
-            </label>
-            <div class="result-actions">
-              <button id="copyLinkBtn" class="button secondary" type="button">Copy link</button>
-              <button id="openGameBtn" class="button secondary" type="button">Open game</button>
-            </div>
+              <div id="mobileResult" class="mobile-result" hidden>
+                <p>The game link gives each browser its own randomized card. Progress is saved automatically for 90 days.</p>
+                <label class="field compact" for="mobileLink">
+                  <span>Shareable Game Link</span>
+                  <input id="mobileLink" type="text" readonly />
+                </label>
+                <div class="result-actions">
+                  <button id="copyLinkBtn" class="button secondary" type="button">Copy link</button>
+                  <button id="openGameBtn" class="button secondary" type="button">Open game</button>
+                </div>
+              </div>
+            </section>
+
+            <section class="output-option">
+              <h3>Print</h3>
+              <p>Four cards per US letter page.</p>
+              <label class="field compact">
+                <span>Number of Cards</span>
+                <input id="cardCount" type="number" min="1" max="200" value="4" />
+              </label>
+              <button id="generatePrintBtn" class="button primary full" type="button">Generate</button>
+              <button id="printBtn" class="button text full" type="button">Print / PDF</button>
+            </section>
           </div>
 
           <p id="status" class="status" aria-live="polite"></p>

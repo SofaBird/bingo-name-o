@@ -66,7 +66,7 @@ textarea { min-height: 218px; resize: vertical; line-height: 1.45; }
 .count-badge { padding: 4px 7px; color: var(--danger); background: #faeaea; border-radius: 4px; font-weight: 700; }
 .count-badge.ready { color: var(--success); background: #e6f2eb; }
 .play-section { min-width: 0; }
-.play-options { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.play-options { display: grid; grid-template-columns: 1fr; gap: 10px; }
 .output-option { min-width: 0; padding: 10px; background: #f7f7f5; border: 1px solid var(--line); border-radius: 4px; }
 .output-option h3 { margin: 0; font-size: 13px; font-weight: 600; letter-spacing: 0; }
 .output-option > p { margin: 4px 0 12px; color: var(--muted); font-size: 13px; line-height: 1.4; }
@@ -121,7 +121,6 @@ textarea { min-height: 218px; resize: vertical; line-height: 1.45; }
   .builder-grid { grid-template-columns: 1fr; }
   .form-section { padding: 13px; }
   .upload-box { align-items: flex-start; flex-direction: column; }
-  .play-options { grid-template-columns: 1fr 1fr; }
   .print-page { grid-template-columns: 1fr; }
   .list-summary { align-items: flex-start; flex-direction: column; }
 }
