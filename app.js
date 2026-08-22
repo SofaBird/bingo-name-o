@@ -2,10 +2,11 @@ const MINIMUM_ITEMS = 30;
 const GAME_LIFETIME_MS = 90 * 24 * 60 * 60 * 1000;
 const SAVED_LISTS_KEY = "make_bingo_saved_lists_v1";
 const LATEST_MOBILE_GAME_KEY = "bingo_latest_mobile_game_v1";
+const DEFAULT_NAME_INSTRUCTIONS = "Find someone who matches each square. No repeats :)";
 const BUILT_IN_SAVED_LISTS = {
   "Example List": {
     title: "Example Bingo",
-    subtitle: "Find someone who matches each square. No repeats :)",
+    subtitle: DEFAULT_NAME_INSTRUCTIONS,
     emoji: "✨",
     winEmoji: "🎉",
     winTitle: "Bingo!",
@@ -110,6 +111,7 @@ const EMOJIS = [
 
 let lastFocusedElement = null;
 let emojiTarget = elements.emoji;
+let defaultInstructionsClearedForMode = false;
 
 function getMobileInteraction() {
   const selected = [...elements.mobileInteractions].find((input) => input.checked)?.value;
@@ -119,6 +121,22 @@ function getMobileInteraction() {
 function setMobileInteraction(value) {
   const selected = ["name", "mark", "player"].includes(value) ? value : "name";
   elements.mobileInteractions.forEach((input) => { input.checked = input.value === selected; });
+}
+
+function updateInstructionsForMobileMode() {
+  if (getMobileInteraction() === "name") {
+    if (defaultInstructionsClearedForMode && !elements.subtitle.value.trim()) {
+      elements.subtitle.value = DEFAULT_NAME_INSTRUCTIONS;
+    }
+    defaultInstructionsClearedForMode = false;
+    return;
+  }
+  if (elements.subtitle.value.trim() === DEFAULT_NAME_INSTRUCTIONS) {
+    elements.subtitle.value = "";
+    defaultInstructionsClearedForMode = true;
+  } else if (elements.subtitle.value.trim()) {
+    defaultInstructionsClearedForMode = false;
+  }
 }
 
 function setStatus(message, isError = false) {
@@ -205,6 +223,7 @@ function loadSelectedList() {
   elements.items.value = saved.items || "";
   elements.cardCount.value = saved.cardCount || "4";
   setMobileInteraction(saved.mobileInteraction);
+  defaultInstructionsClearedForMode = false;
   elements.listName.value = name;
   elements.csvFile.value = "";
   elements.fileName.textContent = "No file selected";
@@ -616,6 +635,7 @@ elements.clearCards.addEventListener("click", () => {
 });
 elements.createMobile.addEventListener("click", createMobileGame);
 elements.mobileInteractions.forEach((input) => input.addEventListener("change", () => {
+  updateInstructionsForMobileMode();
   elements.mobileResult.hidden = true;
   setStatus("");
 }));
