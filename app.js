@@ -2,6 +2,51 @@ const MINIMUM_ITEMS = 30;
 const GAME_LIFETIME_MS = 90 * 24 * 60 * 60 * 1000;
 const SAVED_LISTS_KEY = "make_bingo_saved_lists_v1";
 const LATEST_MOBILE_GAME_KEY = "bingo_latest_mobile_game_v1";
+const BUILT_IN_SAVED_LISTS = {
+  "Example List": {
+    title: "Example Bingo",
+    subtitle: "Find someone who matches each square. No repeats :)",
+    emoji: "✨",
+    winEmoji: "🎉",
+    winTitle: "Bingo!",
+    winMessage: "You completed a row. Nicely done.",
+    winButton: "Keep playing",
+    items: [
+      "Had coffee today",
+      "Owns a pet",
+      "Can whistle",
+      "Has traveled abroad",
+      "Wears glasses",
+      "Is left-handed",
+      "Loves spicy food",
+      "Has run a race",
+      "Plays an instrument",
+      "Speaks two languages",
+      "Has met a celebrity",
+      "Prefers tea to coffee",
+      "Has been camping",
+      "Can bake bread",
+      "Has a hidden talent",
+      "Was born in another state",
+      "Has seen a musical",
+      "Knows a magic trick",
+      "Has ridden a motorcycle",
+      "Loves karaoke",
+      "Has visited a national park",
+      "Can name all five oceans",
+      "Has worked from a coffee shop",
+      "Enjoys gardening",
+      "Has broken a bone",
+      "Can solve a Rubik's Cube",
+      "Has taken a dance class",
+      "Likes pineapple on pizza",
+      "Has stayed up all night",
+      "Knows how to juggle",
+    ].join("\n"),
+    cardCount: "4",
+    mobileInteraction: "name",
+  },
+};
 
 const elements = {
   form: document.getElementById("bingoForm"),
@@ -88,9 +133,10 @@ function setListStatus(message, isError = false) {
 function readSavedLists() {
   try {
     const saved = JSON.parse(localStorage.getItem(SAVED_LISTS_KEY));
-    return saved && typeof saved === "object" && !Array.isArray(saved) ? saved : {};
+    const localLists = saved && typeof saved === "object" && !Array.isArray(saved) ? saved : {};
+    return { ...BUILT_IN_SAVED_LISTS, ...localLists };
   } catch (error) {
-    return {};
+    return { ...BUILT_IN_SAVED_LISTS };
   }
 }
 
