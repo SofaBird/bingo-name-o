@@ -2,6 +2,52 @@ const MINIMUM_ITEMS = 30;
 const GAME_LIFETIME_MS = 90 * 24 * 60 * 60 * 1000;
 const SAVED_LISTS_KEY = "make_bingo_saved_lists_v1";
 const LATEST_MOBILE_GAME_KEY = "bingo_latest_mobile_game_v1";
+const DEFAULT_NAME_INSTRUCTIONS = "Find someone who matches each square. No repeats :)";
+const BUILT_IN_SAVED_LISTS = {
+  "Example List": {
+    title: "Example Bingo",
+    subtitle: DEFAULT_NAME_INSTRUCTIONS,
+    emoji: "✨",
+    winEmoji: "🎉",
+    winTitle: "Bingo!",
+    winMessage: "You completed a row. Nicely done.",
+    winButton: "Keep playing",
+    items: [
+      "Had coffee today",
+      "Owns a pet",
+      "Can whistle",
+      "Has traveled abroad",
+      "Wears glasses",
+      "Is left-handed",
+      "Loves spicy food",
+      "Has run a race",
+      "Plays an instrument",
+      "Speaks two languages",
+      "Has met a celebrity",
+      "Prefers tea to coffee",
+      "Has been camping",
+      "Can bake bread",
+      "Has a hidden talent",
+      "Was born in another state",
+      "Has seen a musical",
+      "Knows a magic trick",
+      "Has ridden a motorcycle",
+      "Loves karaoke",
+      "Has visited a national park",
+      "Can name all five oceans",
+      "Has worked from a coffee shop",
+      "Enjoys gardening",
+      "Has broken a bone",
+      "Can solve a Rubik's Cube",
+      "Has taken a dance class",
+      "Likes pineapple on pizza",
+      "Has stayed up all night",
+      "Knows how to juggle",
+    ].join("\n"),
+    cardCount: "4",
+    mobileInteraction: "name",
+  },
+};
 
 const elements = {
   form: document.getElementById("bingoForm"),
@@ -31,6 +77,7 @@ const elements = {
   cards: document.getElementById("cards"),
   preview: document.getElementById("previewSection"),
   createMobile: document.getElementById("createMobileBtn"),
+  mobileInteractions: document.querySelectorAll('input[name="mobileInteraction"]'),
   mobileResult: document.getElementById("mobileResult"),
   mobileLink: document.getElementById("mobileLink"),
   copyLink: document.getElementById("copyLinkBtn"),
@@ -56,7 +103,8 @@ const EMOJIS = [
   ["🍓", "strawberry"], ["🍋", "lemon"], ["🥑", "avocado"], ["🌮", "taco"],
   ["🐶", "dog"], ["🐱", "cat"], ["🦄", "unicorn"], ["🦋", "butterfly"],
   ["🐝", "bee"], ["🐙", "octopus"], ["🦖", "dinosaur"], ["🐸", "frog"],
-  ["😊", "smile happy"], ["😎", "cool sunglasses"], ["🤩", "star eyes"], ["🥳", "party face"],
+  ["😊", "smile happy"], ["😉", "winking face wink"], ["🤫", "shushing face quiet secret"], ["😈", "smiling purple devil"],
+  ["👻", "ghost"], ["😎", "cool sunglasses"], ["🤩", "star eyes"], ["🥳", "party face"],
   ["🙌", "hands celebrate"], ["👏", "clap"], ["💡", "idea light bulb"], ["🚀", "rocket"],
   ["✈️", "airplane travel"], ["🏖️", "beach"], ["🏕️", "camping"], ["🏠", "house home"],
   ["🎓", "graduation"], ["💍", "ring wedding"], ["🎁", "gift present"], ["👑", "crown"],
@@ -64,6 +112,33 @@ const EMOJIS = [
 
 let lastFocusedElement = null;
 let emojiTarget = elements.emoji;
+let defaultInstructionsClearedForMode = false;
+
+function getMobileInteraction() {
+  const selected = [...elements.mobileInteractions].find((input) => input.checked)?.value;
+  return ["name", "mark", "player"].includes(selected) ? selected : "name";
+}
+
+function setMobileInteraction(value) {
+  const selected = ["name", "mark", "player"].includes(value) ? value : "name";
+  elements.mobileInteractions.forEach((input) => { input.checked = input.value === selected; });
+}
+
+function updateInstructionsForMobileMode() {
+  if (getMobileInteraction() === "name") {
+    if (defaultInstructionsClearedForMode && !elements.subtitle.value.trim()) {
+      elements.subtitle.value = DEFAULT_NAME_INSTRUCTIONS;
+    }
+    defaultInstructionsClearedForMode = false;
+    return;
+  }
+  if (elements.subtitle.value.trim() === DEFAULT_NAME_INSTRUCTIONS) {
+    elements.subtitle.value = "";
+    defaultInstructionsClearedForMode = true;
+  } else if (elements.subtitle.value.trim()) {
+    defaultInstructionsClearedForMode = false;
+  }
+}
 
 function setStatus(message, isError = false) {
   elements.status.textContent = message;
@@ -78,9 +153,10 @@ function setListStatus(message, isError = false) {
 function readSavedLists() {
   try {
     const saved = JSON.parse(localStorage.getItem(SAVED_LISTS_KEY));
-    return saved && typeof saved === "object" && !Array.isArray(saved) ? saved : {};
+    const localLists = saved && typeof saved === "object" && !Array.isArray(saved) ? saved : {};
+    return { ...BUILT_IN_SAVED_LISTS, ...localLists };
   } catch (error) {
-    return {};
+    return { ...BUILT_IN_SAVED_LISTS };
   }
 }
 
@@ -119,6 +195,7 @@ function saveCurrentList() {
     winButton: elements.winButton.value,
     items: elements.items.value,
     cardCount: elements.cardCount.value,
+    mobileInteraction: getMobileInteraction(),
     savedAt: Date.now(),
   };
   try {
@@ -146,6 +223,8 @@ function loadSelectedList() {
   elements.winButton.value = saved.winButton || "Keep playing";
   elements.items.value = saved.items || "";
   elements.cardCount.value = saved.cardCount || "4";
+  setMobileInteraction(saved.mobileInteraction);
+  defaultInstructionsClearedForMode = false;
   elements.listName.value = name;
   elements.csvFile.value = "";
   elements.fileName.textContent = "No file selected";
@@ -221,6 +300,7 @@ function validateGame() {
     winMessage: elements.winMessage.value.trim() || "You completed a row. Nicely done.",
     winButton: elements.winButton.value.trim() || "Keep playing",
     phrases: summary.unique,
+    interactionMode: getMobileInteraction(),
   };
 }
 
@@ -398,7 +478,7 @@ async function encodeGame(game) {
 }
 
 function getMobilePageUrl() {
-  if (window.location.protocol === "file:") return new URL("https://bingo-name-o.netlify.app/mobile.html");
+  if (window.location.protocol === "file:") return new URL("https://bingo-game-o.netlify.app/mobile.html");
   return new URL("mobile.html", window.location.href);
 }
 
@@ -555,6 +635,11 @@ elements.clearCards.addEventListener("click", () => {
   setStatus("Print preview cleared.");
 });
 elements.createMobile.addEventListener("click", createMobileGame);
+elements.mobileInteractions.forEach((input) => input.addEventListener("change", () => {
+  updateInstructionsForMobileMode();
+  elements.mobileResult.hidden = true;
+  setStatus("");
+}));
 elements.copyLink.addEventListener("click", copyMobileLink);
 elements.openGame.addEventListener("click", () => {
   if (!elements.mobileLink.value) return;

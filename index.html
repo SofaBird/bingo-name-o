@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content="Create printable bingo cards or a mobile bingo game from your own CSV." />
-    <title>Bingo Name-o</title>
+    <title>Bingo Game-o</title>
     <link rel="icon" href="favicon.svg?v=4" type="image/svg+xml" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -22,7 +22,7 @@
   </head>
   <body>
     <main class="page-shell">
-      <h1 class="page-title">Bingo Name-o</h1>
+      <h1 class="page-title">Bingo Game-o</h1>
       <form id="bingoForm" class="builder-grid" novalidate>
         <div class="left-column">
           <section class="form-section" aria-label="Card details">
@@ -119,6 +119,39 @@
           <h2 class="section-title">How Do You Want to Play?</h2>
           <div class="play-options">
             <section class="output-option">
+              <h3>Mobile</h3>
+              <p>Each visitor gets their own board.</p>
+              <fieldset class="mobile-mode">
+                <legend>Square Selection</legend>
+                <label>
+                  <input type="radio" name="mobileInteraction" value="mark" />
+                  <span>Just mark the square</span>
+                </label>
+                <label>
+                  <input type="radio" name="mobileInteraction" value="player" />
+                  <span>Enter player name once</span>
+                </label>
+                <label>
+                  <input type="radio" name="mobileInteraction" value="name" checked />
+                  <span>Enter a name each time</span>
+                </label>
+              </fieldset>
+              <button id="createMobileBtn" class="button primary full" type="button">Create game</button>
+
+              <div id="mobileResult" class="mobile-result" hidden>
+                <p>The game link gives each browser its own randomized card. Progress is saved automatically for 90 days.</p>
+                <label class="field compact" for="mobileLink">
+                  <span>Shareable Game Link</span>
+                  <input id="mobileLink" type="text" readonly />
+                </label>
+                <div class="result-actions">
+                  <button id="copyLinkBtn" class="button secondary" type="button">Copy link</button>
+                  <button id="openGameBtn" class="button secondary" type="button">Open game</button>
+                </div>
+              </div>
+            </section>
+
+            <section class="output-option">
               <h3>Print</h3>
               <p>Four cards per US letter page.</p>
               <label class="field compact">
@@ -128,24 +161,6 @@
               <button id="generatePrintBtn" class="button primary full" type="button">Generate</button>
               <button id="printBtn" class="button text full" type="button">Print / PDF</button>
             </section>
-
-            <section class="output-option">
-              <h3>Mobile</h3>
-              <p>Each visitor gets their own board.</p>
-              <button id="createMobileBtn" class="button primary full" type="button">Create game</button>
-            </section>
-          </div>
-
-          <div id="mobileResult" class="mobile-result" hidden>
-            <p>The game link gives each browser its own randomized card. Progress is saved automatically for 90 days.</p>
-            <label class="field compact" for="mobileLink">
-              <span>Shareable Game Link</span>
-              <input id="mobileLink" type="text" readonly />
-            </label>
-            <div class="result-actions">
-              <button id="copyLinkBtn" class="button secondary" type="button">Copy link</button>
-              <button id="openGameBtn" class="button secondary" type="button">Open game</button>
-            </div>
           </div>
 
           <p id="status" class="status" aria-live="polite"></p>
@@ -163,7 +178,7 @@
       </section>
 
       <footer class="site-footer">
-        <a href="admin.html">Made with &lt;3</a>
+        <a href="admin.html">KV</a>
       </footer>
     </main>
 

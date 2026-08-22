@@ -34,7 +34,7 @@
         </header>
         <div class="bingo-letters" aria-hidden="true"><span>B</span><span>I</span><span>N</span><span>G</span><span>O</span></div>
         <div id="cardGrid" class="card-grid" aria-label="Your bingo card" data-clarity-unmask="true"></div>
-        <p class="hint">Tap a square to add a name. Tap it again to edit.</p>
+        <p id="gameHint" class="hint">Tap a square to add a name. Tap it again to edit.</p>
       </section>
     </main>
 
@@ -46,6 +46,16 @@
         <div class="modal-actions">
           <button id="cancelEntry" class="button ghost" type="button">Cancel</button>
           <button id="saveEntry" class="button primary" type="button">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="playerNameModal" class="modal" aria-hidden="true">
+      <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="playerNameTitle">
+        <h2 id="playerNameTitle">What’s your name?</h2>
+        <input id="playerNameInput" type="text" maxlength="80" autocomplete="name" placeholder="Enter your name" />
+        <div class="modal-actions">
+          <button id="savePlayerName" class="button primary" type="button">Start</button>
         </div>
       </div>
     </div>

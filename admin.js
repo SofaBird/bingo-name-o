@@ -151,7 +151,7 @@ function renderPlayers(players) {
     const label = document.createElement("strong");
     label.textContent = `Player ${index + 1} · ${player.playerId.slice(0, 8)}`;
     const names = document.createElement("span");
-    names.textContent = `${entries.length} name${entries.length === 1 ? "" : "s"}`;
+    names.textContent = `${entries.length} selection${entries.length === 1 ? "" : "s"}`;
     const boardTotal = document.createElement("span");
     boardTotal.textContent = `${boards.length} board${boards.length === 1 ? "" : "s"}`;
     const activity = document.createElement("span");
@@ -167,12 +167,12 @@ function renderPlayers(players) {
       const list = document.createElement("ul");
       (board.entries || []).forEach((entry) => {
         const item = document.createElement("li");
-        item.textContent = `${entry.prompt}: ${entry.name}`;
+        item.textContent = entry.name ? `${entry.prompt}: ${entry.name}` : entry.prompt;
         list.appendChild(item);
       });
       if (!list.children.length) {
         const item = document.createElement("li");
-        item.textContent = "No names entered yet.";
+        item.textContent = "No squares selected yet.";
         list.appendChild(item);
       }
       section.append(heading, list);
@@ -192,7 +192,7 @@ function renderCatalog(games) {
   elements.title.textContent = "Admin";
   elements.subtitle.textContent = "";
   elements.subtitle.hidden = true;
-  document.title = "Bingo Name-o Admin";
+  document.title = "Bingo Game-o Admin";
   elements.gameCount.textContent = games.length;
   elements.totalPlayers.textContent = games.reduce((total, game) => total + game.playerCount, 0);
   elements.totalEntries.textContent = games.reduce((total, game) => total + game.entryCount, 0);
