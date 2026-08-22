@@ -77,11 +77,15 @@ function getGameParameter() {
     } catch (error) {
       // The link still works when session storage is unavailable.
     }
-    window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
     return linkedGame;
   }
   try {
-    return sessionStorage.getItem(ACTIVE_GAME_KEY);
+    const storedGame = sessionStorage.getItem(ACTIVE_GAME_KEY);
+    if (!storedGame) return null;
+    const restoredUrl = new URL(window.location.href);
+    restoredUrl.hash = new URLSearchParams({ game: storedGame }).toString();
+    window.history.replaceState(null, "", `${restoredUrl.pathname}${restoredUrl.search}${restoredUrl.hash}`);
+    return storedGame;
   } catch (error) {
     return null;
   }
