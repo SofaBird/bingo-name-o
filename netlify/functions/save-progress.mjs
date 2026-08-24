@@ -20,12 +20,19 @@ function cleanBoard(board, index) {
       name: cleanText(entry?.name, 80),
     })).filter((entry) => entry.prompt)
     : [];
+  const now = Date.now();
+  const startedAt = Math.min(now, Math.max(0, Number(board.startedAt) || 0));
+  const suppliedBingoAt = Math.min(now, Math.max(0, Number(board.bingoAt) || 0));
+  const hadBingo = Boolean(board.hadBingo);
+  const bingoAt = hadBingo && startedAt > 0 && suppliedBingoAt >= startedAt ? suppliedBingoAt : null;
 
   return {
     id: boardId,
     number: Math.max(1, Math.min(99, Number(board.number) || index + 1)),
     theme: THEMES.has(board.theme) ? board.theme : "purple",
-    hadBingo: Boolean(board.hadBingo),
+    hadBingo,
+    startedAt,
+    bingoAt,
     entries,
   };
 }

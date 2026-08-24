@@ -90,6 +90,32 @@ function playerRecordLabel(player, index) {
   return `Player ${index + 1} · ${player.playerId.slice(0, 8)}`;
 }
 
+function formatDuration(milliseconds) {
+  if (!Number.isFinite(milliseconds) || milliseconds < 0) return "—";
+  const totalSeconds = Math.round(milliseconds / 1000);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  if (hours) return `${hours}h ${minutes}m ${seconds}s`;
+  if (minutes) return `${minutes}m ${seconds}s`;
+  return `${seconds}s`;
+}
+
+function boardTiming(board) {
+  const startedAt = Number(board.startedAt) || 0;
+  const bingoAt = Number(board.bingoAt) || 0;
+  const elapsed = startedAt > 0 && bingoAt >= startedAt ? bingoAt - startedAt : null;
+  return { startedAt, bingoAt, elapsed };
+}
+
+function boardTimingText(board) {
+  const { startedAt, bingoAt, elapsed } = boardTiming(board);
+  if (elapsed !== null) return `Started ${formatDate(startedAt)} · Bingo ${formatDate(bingoAt)} · ${formatDuration(elapsed)}`;
+  if (board.hadBingo) return "Timing unavailable (completed before tracking)";
+  if (startedAt) return `Started ${formatDate(startedAt)} · No Bingo yet`;
+  return "Timing unavailable";
+}
+
 function closeSummaryDetail() {
   elements.summaryDetail.hidden = true;
   elements.summaryCards.forEach((card) => card.setAttribute("aria-expanded", "false"));
@@ -127,16 +153,18 @@ function renderSummaryDetail(type, players) {
     players.forEach((player, index) => {
       const bingoBoards = allBoards(player).filter((board) => board.hadBingo);
       if (!bingoBoards.length) return;
-      const item = document.createElement("li");
-      item.textContent = `${playerRecordLabel(player, index)} — ${bingoBoards.length} Bingo board${bingoBoards.length === 1 ? "" : "s"}`;
-      list.appendChild(item);
+      bingoBoards.forEach((board) => {
+        const item = document.createElement("li");
+        item.textContent = `${playerRecordLabel(player, index)} · Board ${board.number} — ${boardTimingText(board)}`;
+        list.appendChild(item);
+      });
     });
   } else {
     elements.summaryDetailTitle.textContent = "Boards Played";
     players.forEach((player, index) => {
       allBoards(player).forEach((board) => {
         const item = document.createElement("li");
-        item.textContent = `${playerRecordLabel(player, index)} · Board ${board.number} — ${board.theme}${board.hadBingo ? " · Bingo" : ""}`;
+        item.textContent = `${playerRecordLabel(player, index)} · Board ${board.number} — ${board.theme}${board.hadBingo ? " · Bingo" : ""} · ${boardTimingText(board)}`;
         list.appendChild(item);
       });
     });
@@ -268,6 +296,9 @@ function renderPlayers(players) {
       section.className = "board";
       const heading = document.createElement("h3");
       heading.textContent = `Board ${board.number}${board.hadBingo ? " · Bingo" : ""} · ${board.theme}`;
+      const timing = document.createElement("p");
+      timing.className = "board-timing";
+      timing.textContent = boardTimingText(board);
       const list = document.createElement("ul");
       (board.entries || []).forEach((entry) => {
         const item = document.createElement("li");
@@ -279,7 +310,7 @@ function renderPlayers(players) {
         item.textContent = "No squares selected yet.";
         list.appendChild(item);
       }
-      section.append(heading, list);
+      section.append(heading, timing, list);
       boardWrap.appendChild(section);
     });
     details.append(summary, boardWrap);
@@ -444,15 +475,19 @@ function csvCell(value) {
 
 function downloadCsv() {
   if (!latestData) return;
-  const rows = [["player_id", "board", "theme", "bingo", "square", "entered_name", "last_updated"]];
+  const rows = [["player_id", "board", "theme", "bingo", "board_started_at", "bingo_at", "seconds_to_bingo", "square", "entered_name", "last_updated"]];
   latestData.players.forEach((player) => {
     allBoards(player).forEach((board) => {
+      const timing = boardTiming(board);
       (board.entries || []).forEach((entry) => {
         rows.push([
           player.playerId,
           board.number,
           board.theme,
           board.hadBingo ? "yes" : "no",
+          timing.startedAt ? new Date(timing.startedAt).toISOString() : "",
+          timing.bingoAt ? new Date(timing.bingoAt).toISOString() : "",
+          timing.elapsed === null ? "" : Math.round(timing.elapsed / 1000),
           entry.prompt,
           entry.name,
           new Date(player.updatedAt).toISOString(),

@@ -164,6 +164,8 @@ function buildBoard(previous = {}) {
     theme: randomTheme(),
     playerId: previous.playerId || randomId(),
     startedAt: previous.startedAt || Date.now(),
+    boardStartedAt: Date.now(),
+    bingoAt: null,
     boardId: randomId(8),
     boardNumber: previous.boardNumber || 1,
     history: Array.isArray(previous.history) ? previous.history.slice(-11) : [],
@@ -194,6 +196,8 @@ function boardSnapshot(source = state) {
     number: source.boardNumber,
     theme: source.theme,
     hadBingo: Array.isArray(source.celebratedLines) && source.celebratedLines.length > 0,
+    startedAt: Number(source.boardStartedAt) || Number(source.startedAt) || 0,
+    bingoAt: Number(source.bingoAt) || null,
     entries: source.cells
       .map((cell, position) => ({ position, prompt: cell.prompt, name: cell.guest, marked: cell.marked, type: cell.type }))
       .filter((entry) => entry.type === "phrase" && entry.marked && entry.prompt)
@@ -381,6 +385,7 @@ function checkForBingo() {
   });
   if (!newWin) return;
   state.celebratedLines.push(newWin.join("-"));
+  if (!state.bingoAt) state.bingoAt = Date.now();
   saveState();
   window.clarity?.("event", "bingo_completed");
   renderWinDigest();
@@ -453,6 +458,8 @@ async function initialize() {
     if (!THEMES.includes(state.theme)) state.theme = randomTheme();
     if (!state.playerId) state.playerId = randomId();
     if (!state.startedAt) state.startedAt = Date.now();
+    if (!state.boardStartedAt) state.boardStartedAt = Date.now();
+    if (!Number.isFinite(Number(state.bingoAt))) state.bingoAt = null;
     if (!state.boardId) state.boardId = randomId(8);
     if (!state.boardNumber) state.boardNumber = 1;
     if (!Array.isArray(state.history)) state.history = [];
