@@ -38,11 +38,16 @@ h1 { margin: 0; font-size: clamp(24px, 5vw, 38px); letter-spacing: -.04em; }
 .ranking-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ranking-count { min-width: 28px; padding: 3px 6px; color: var(--accent); background: var(--accent-soft); border-radius: 999px; font-weight: 700; text-align: center; }
 .ranking-count:is(button) { border: 0; cursor: pointer; }
+.ranking-count:is(button)::after { margin-left: 3px; content: "+"; }
+.ranking-count:is(button)[aria-expanded="true"]::after { content: "−"; }
 .ranking-count:is(button):hover { color: #fff; background: var(--accent); }
 .ranking-count:is(button):focus-visible { outline: 3px solid rgba(61, 36, 92, .22); outline-offset: 2px; }
 .ranking-details { grid-column: 1 / -1; margin: 2px 0 5px; padding: 9px 10px; color: var(--muted); background: #f8f6f9; border-radius: 4px; }
 .ranking-details strong { display: block; margin-bottom: 5px; color: var(--ink); font-size: 11px; }
 .ranking-details ul { margin: 0; padding-left: 18px; font-size: 11px; line-height: 1.55; }
+.ranking-more { width: 100%; margin-top: 4px; padding: 7px; color: var(--accent); background: transparent; border: 1px solid var(--line); border-radius: 4px; cursor: pointer; font: inherit; font-size: 11px; font-weight: 700; }
+.ranking-more:hover { background: var(--accent-soft); }
+.ranking-more:focus-visible { outline: 3px solid rgba(61, 36, 92, .22); outline-offset: 2px; }
 .empty { margin: 0; color: var(--muted); font-size: 12px; }
 .panel-heading { display: flex; align-items: center; justify-content: space-between; gap: 15px; }
 .panel-heading h2 { margin-bottom: 0; }
