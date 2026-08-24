@@ -24,6 +24,11 @@ const elements = {
   entryCount: document.getElementById("entryCount"),
   bingoCount: document.getElementById("bingoCount"),
   boardCount: document.getElementById("boardCount"),
+  summaryCards: document.querySelectorAll("[data-summary]"),
+  summaryDetail: document.getElementById("summaryDetail"),
+  summaryDetailTitle: document.getElementById("summaryDetailTitle"),
+  summaryDetailContent: document.getElementById("summaryDetailContent"),
+  closeSummaryDetail: document.getElementById("closeSummaryDetail"),
   squareRanking: document.getElementById("squareRanking"),
   nameRanking: document.getElementById("nameRanking"),
   playerList: document.getElementById("playerList"),
@@ -68,10 +73,10 @@ function allEntries(player) {
   return allBoards(player).flatMap((board) => board.entries || []);
 }
 
-function countValues(entries, property) {
+function countValues(entries, property, emptyDisplay = "") {
   const counts = new Map();
   entries.forEach((entry) => {
-    const display = String(entry[property] || "").trim();
+    const display = String(entry[property] || "").trim() || emptyDisplay;
     if (!display) return;
     const key = display.toLocaleLowerCase();
     const current = counts.get(key) || { display, count: 0 };
@@ -81,7 +86,109 @@ function countValues(entries, property) {
   return [...counts.values()].sort((a, b) => b.count - a.count || a.display.localeCompare(b.display));
 }
 
-function renderRanking(container, values, emptyMessage, entryDetails = null) {
+function playerRecordLabel(player, index) {
+  return `Player ${index + 1} · ${player.playerId.slice(0, 8)}`;
+}
+
+function formatDuration(milliseconds) {
+  if (!Number.isFinite(milliseconds) || milliseconds < 0) return "—";
+  const totalSeconds = Math.round(milliseconds / 1000);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  if (hours) return `${hours}h ${minutes}m ${seconds}s`;
+  if (minutes) return `${minutes}m ${seconds}s`;
+  return `${seconds}s`;
+}
+
+function boardTiming(board) {
+  const startedAt = Number(board.startedAt) || 0;
+  const bingoAt = Number(board.bingoAt) || 0;
+  const elapsed = startedAt > 0 && bingoAt >= startedAt ? bingoAt - startedAt : null;
+  return { startedAt, bingoAt, elapsed };
+}
+
+function boardTimingText(board) {
+  const { startedAt, bingoAt, elapsed } = boardTiming(board);
+  if (elapsed !== null) return `Started ${formatDate(startedAt)} · Bingo ${formatDate(bingoAt)} · ${formatDuration(elapsed)}`;
+  if (board.hadBingo) return "Timing unavailable (completed before tracking)";
+  if (startedAt) return `Started ${formatDate(startedAt)} · No Bingo yet`;
+  return "Timing unavailable";
+}
+
+function closeSummaryDetail() {
+  elements.summaryDetail.hidden = true;
+  elements.summaryCards.forEach((card) => card.setAttribute("aria-expanded", "false"));
+}
+
+function renderSummaryDetail(type, players) {
+  const activeCard = [...elements.summaryCards].find((card) => card.dataset.summary === type);
+  if (!elements.summaryDetail.hidden && activeCard?.getAttribute("aria-expanded") === "true") {
+    closeSummaryDetail();
+    return;
+  }
+  elements.summaryCards.forEach((card) => card.setAttribute("aria-expanded", String(card === activeCard)));
+  elements.summaryDetailContent.replaceChildren();
+  const list = document.createElement("ul");
+  list.className = "summary-detail-list";
+
+  if (type === "players") {
+    elements.summaryDetailTitle.textContent = "Players";
+    players.forEach((player, index) => {
+      const boards = allBoards(player);
+      const selections = allEntries(player);
+      const item = document.createElement("li");
+      item.textContent = `${playerRecordLabel(player, index)} — ${selections.length} selection${selections.length === 1 ? "" : "s"}, ${boards.length} board${boards.length === 1 ? "" : "s"}, last active ${formatDate(player.updatedAt)}`;
+      list.appendChild(item);
+    });
+  } else if (type === "entries") {
+    elements.summaryDetailTitle.textContent = "Names Entered";
+    countValues(players.flatMap(allEntries), "name", "No name entered").forEach(({ display, count }) => {
+      const item = document.createElement("li");
+      item.textContent = `${display} — ${count}`;
+      list.appendChild(item);
+    });
+  } else if (type === "bingos") {
+    elements.summaryDetailTitle.textContent = "Players with Bingo";
+    players.forEach((player, index) => {
+      const bingoBoards = allBoards(player).filter((board) => board.hadBingo);
+      if (!bingoBoards.length) return;
+      bingoBoards.forEach((board) => {
+        const item = document.createElement("li");
+        item.textContent = `${playerRecordLabel(player, index)} · Board ${board.number} — ${boardTimingText(board)}`;
+        list.appendChild(item);
+      });
+    });
+  } else {
+    elements.summaryDetailTitle.textContent = "Boards Played";
+    players.forEach((player, index) => {
+      allBoards(player).forEach((board) => {
+        const item = document.createElement("li");
+        item.textContent = `${playerRecordLabel(player, index)} · Board ${board.number} — ${board.theme}${board.hadBingo ? " · Bingo" : ""} · ${boardTimingText(board)}`;
+        list.appendChild(item);
+      });
+    });
+  }
+
+  if (!list.children.length) {
+    const empty = document.createElement("p");
+    empty.className = "empty";
+    empty.textContent = "No matching activity yet.";
+    elements.summaryDetailContent.appendChild(empty);
+  } else {
+    elements.summaryDetailContent.appendChild(list);
+  }
+  elements.summaryDetail.hidden = false;
+}
+
+function configureSummaryCards(players) {
+  closeSummaryDetail();
+  elements.summaryCards.forEach((card) => {
+    card.onclick = () => renderSummaryDetail(card.dataset.summary, players);
+  });
+}
+
+function renderRanking(container, values, emptyMessage, detailsConfig = null) {
   container.replaceChildren();
   if (!values.length) {
     const empty = document.createElement("p");
@@ -97,30 +204,37 @@ function renderRanking(container, values, emptyMessage, entryDetails = null) {
     label.className = "ranking-label";
     label.textContent = display;
     label.title = display;
-    const total = entryDetails ? document.createElement("button") : document.createElement("span");
+    const total = detailsConfig ? document.createElement("button") : document.createElement("span");
     total.className = "ranking-count";
     total.textContent = count;
     row.append(label, total);
 
-    if (entryDetails) {
+    if (detailsConfig) {
+      const isSquareDetail = detailsConfig.type === "square";
+      const detailDescription = isSquareDetail ? "names entered for" : "squares assigned to";
       total.type = "button";
       total.setAttribute("aria-expanded", "false");
-      total.setAttribute("aria-label", `Show the ${count} square${count === 1 ? "" : "s"} assigned to ${display}`);
-      total.title = `Show squares assigned to ${display}`;
+      total.setAttribute("aria-label", `Show ${detailDescription} ${display}`);
+      total.title = `Show ${detailDescription} ${display}`;
       const details = document.createElement("div");
       details.className = "ranking-details";
       details.id = `${container.id}-details-${index}`;
       details.hidden = true;
       total.setAttribute("aria-controls", details.id);
       const heading = document.createElement("strong");
-      heading.textContent = `${display} · ${count} ${count === 1 ? "entry" : "entries"}`;
+      const countLabel = isSquareDetail
+        ? (count === 1 ? "selection" : "selections")
+        : (count === 1 ? "entry" : "entries");
+      heading.textContent = `${display} · ${count} ${countLabel}`;
       const list = document.createElement("ul");
-      const matches = entryDetails.filter((entry) => (
-        String(entry.name || "").trim().toLocaleLowerCase() === display.toLocaleLowerCase()
+      const matchProperty = isSquareDetail ? "prompt" : "name";
+      const listProperty = isSquareDetail ? "name" : "prompt";
+      const matches = detailsConfig.entries.filter((entry) => (
+        String(entry[matchProperty] || "").trim().toLocaleLowerCase() === display.toLocaleLowerCase()
       ));
-      countValues(matches, "prompt").forEach(({ display: prompt, count: promptCount }) => {
+      countValues(matches, listProperty, isSquareDetail ? "No name entered" : "").forEach(({ display: itemDisplay, count: itemCount }) => {
         const item = document.createElement("li");
-        item.textContent = `${prompt}${promptCount > 1 ? ` (${promptCount})` : ""}`;
+        item.textContent = `${itemDisplay}${itemCount > 1 ? ` (${itemCount})` : ""}`;
         list.appendChild(item);
       });
       details.append(heading, list);
@@ -129,7 +243,7 @@ function renderRanking(container, values, emptyMessage, entryDetails = null) {
         const willOpen = details.hidden;
         details.hidden = !willOpen;
         total.setAttribute("aria-expanded", String(willOpen));
-        total.title = `${willOpen ? "Hide" : "Show"} squares assigned to ${display}`;
+        total.title = `${willOpen ? "Hide" : "Show"} ${detailDescription} ${display}`;
       });
     }
     container.appendChild(row);
@@ -182,6 +296,9 @@ function renderPlayers(players) {
       section.className = "board";
       const heading = document.createElement("h3");
       heading.textContent = `Board ${board.number}${board.hadBingo ? " · Bingo" : ""} · ${board.theme}`;
+      const timing = document.createElement("p");
+      timing.className = "board-timing";
+      timing.textContent = boardTimingText(board);
       const list = document.createElement("ul");
       (board.entries || []).forEach((entry) => {
         const item = document.createElement("li");
@@ -193,7 +310,7 @@ function renderPlayers(players) {
         item.textContent = "No squares selected yet.";
         list.appendChild(item);
       }
-      section.append(heading, list);
+      section.append(heading, timing, list);
       boardWrap.appendChild(section);
     });
     details.append(summary, boardWrap);
@@ -263,6 +380,7 @@ function renderGame(data) {
   elements.entryCount.textContent = entries.length;
   elements.bingoCount.textContent = players.filter((player) => allBoards(player).some((board) => board.hadBingo)).length;
   elements.boardCount.textContent = boards.length;
+  configureSummaryCards(players);
   elements.detailUpdated.textContent = `Updated ${new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit", second: "2-digit" })}`;
   if (data.game.mobilePath) {
     elements.openMobile.href = new URL(data.game.mobilePath, window.location.origin).toString();
@@ -271,8 +389,18 @@ function renderGame(data) {
     elements.openMobile.removeAttribute("href");
     elements.mobileLinkRow.hidden = true;
   }
-  renderRanking(elements.squareRanking, countValues(entries, "prompt"), "No squares have been selected yet.");
-  renderRanking(elements.nameRanking, countValues(entries, "name"), "No names have been entered yet.", entries);
+  renderRanking(
+    elements.squareRanking,
+    countValues(entries, "prompt"),
+    "No squares have been selected yet.",
+    { entries, type: "square" },
+  );
+  renderRanking(
+    elements.nameRanking,
+    countValues(entries, "name"),
+    "No names have been entered yet.",
+    { entries, type: "name" },
+  );
   renderPlayers(players);
   elements.download.disabled = !entries.length;
   elements.catalog.hidden = true;
@@ -347,15 +475,19 @@ function csvCell(value) {
 
 function downloadCsv() {
   if (!latestData) return;
-  const rows = [["player_id", "board", "theme", "bingo", "square", "entered_name", "last_updated"]];
+  const rows = [["player_id", "board", "theme", "bingo", "board_started_at", "bingo_at", "seconds_to_bingo", "square", "entered_name", "last_updated"]];
   latestData.players.forEach((player) => {
     allBoards(player).forEach((board) => {
+      const timing = boardTiming(board);
       (board.entries || []).forEach((entry) => {
         rows.push([
           player.playerId,
           board.number,
           board.theme,
           board.hadBingo ? "yes" : "no",
+          timing.startedAt ? new Date(timing.startedAt).toISOString() : "",
+          timing.bingoAt ? new Date(timing.bingoAt).toISOString() : "",
+          timing.elapsed === null ? "" : Math.round(timing.elapsed / 1000),
           entry.prompt,
           entry.name,
           new Date(player.updatedAt).toISOString(),
@@ -376,6 +508,7 @@ elements.loginForm.addEventListener("submit", (event) => {
   password = elements.password.value;
   loadCurrentView();
 });
+elements.closeSummaryDetail.addEventListener("click", closeSummaryDetail);
 elements.logout.addEventListener("click", () => {
   password = "";
   elements.password.value = "";
