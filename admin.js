@@ -32,6 +32,7 @@ const elements = {
 
 let password = "";
 let latestData = null;
+const RANKING_PREVIEW_LIMIT = 15;
 
 function showError(message) {
   elements.error.textContent = message;
@@ -89,7 +90,7 @@ function renderRanking(container, values, emptyMessage, entryDetails = null) {
     container.appendChild(empty);
     return;
   }
-  values.slice(0, 15).forEach(({ display, count }, index) => {
+  function appendRow({ display, count }, index) {
     const row = document.createElement("div");
     row.className = "ranking-row";
     const label = document.createElement("span");
@@ -104,14 +105,15 @@ function renderRanking(container, values, emptyMessage, entryDetails = null) {
     if (entryDetails) {
       total.type = "button";
       total.setAttribute("aria-expanded", "false");
-      total.setAttribute("aria-label", `Show squares assigned to ${display}`);
+      total.setAttribute("aria-label", `Show the ${count} square${count === 1 ? "" : "s"} assigned to ${display}`);
+      total.title = `Show squares assigned to ${display}`;
       const details = document.createElement("div");
       details.className = "ranking-details";
-      details.id = `admin-name-squares-${index}`;
+      details.id = `${container.id}-details-${index}`;
       details.hidden = true;
       total.setAttribute("aria-controls", details.id);
       const heading = document.createElement("strong");
-      heading.textContent = `Squares assigned to ${display}`;
+      heading.textContent = `${display} · ${count} ${count === 1 ? "entry" : "entries"}`;
       const list = document.createElement("ul");
       const matches = entryDetails.filter((entry) => (
         String(entry.name || "").trim().toLocaleLowerCase() === display.toLocaleLowerCase()
@@ -127,10 +129,26 @@ function renderRanking(container, values, emptyMessage, entryDetails = null) {
         const willOpen = details.hidden;
         details.hidden = !willOpen;
         total.setAttribute("aria-expanded", String(willOpen));
+        total.title = `${willOpen ? "Hide" : "Show"} squares assigned to ${display}`;
       });
     }
     container.appendChild(row);
-  });
+  }
+
+  values.slice(0, RANKING_PREVIEW_LIMIT).forEach(appendRow);
+  if (values.length > RANKING_PREVIEW_LIMIT) {
+    const showAll = document.createElement("button");
+    showAll.className = "ranking-more";
+    showAll.type = "button";
+    showAll.textContent = `Show all ${values.length}`;
+    showAll.addEventListener("click", () => {
+      showAll.remove();
+      values.slice(RANKING_PREVIEW_LIMIT).forEach((value, offset) => {
+        appendRow(value, RANKING_PREVIEW_LIMIT + offset);
+      });
+    });
+    container.appendChild(showAll);
+  }
 }
 
 function renderPlayers(players) {
