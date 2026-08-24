@@ -68,10 +68,10 @@ function allEntries(player) {
   return allBoards(player).flatMap((board) => board.entries || []);
 }
 
-function countValues(entries, property) {
+function countValues(entries, property, emptyDisplay = "") {
   const counts = new Map();
   entries.forEach((entry) => {
-    const display = String(entry[property] || "").trim();
+    const display = String(entry[property] || "").trim() || emptyDisplay;
     if (!display) return;
     const key = display.toLocaleLowerCase();
     const current = counts.get(key) || { display, count: 0 };
@@ -81,7 +81,7 @@ function countValues(entries, property) {
   return [...counts.values()].sort((a, b) => b.count - a.count || a.display.localeCompare(b.display));
 }
 
-function renderRanking(container, values, emptyMessage, entryDetails = null) {
+function renderRanking(container, values, emptyMessage, detailsConfig = null) {
   container.replaceChildren();
   if (!values.length) {
     const empty = document.createElement("p");
@@ -97,30 +97,37 @@ function renderRanking(container, values, emptyMessage, entryDetails = null) {
     label.className = "ranking-label";
     label.textContent = display;
     label.title = display;
-    const total = entryDetails ? document.createElement("button") : document.createElement("span");
+    const total = detailsConfig ? document.createElement("button") : document.createElement("span");
     total.className = "ranking-count";
     total.textContent = count;
     row.append(label, total);
 
-    if (entryDetails) {
+    if (detailsConfig) {
+      const isSquareDetail = detailsConfig.type === "square";
+      const detailDescription = isSquareDetail ? "names entered for" : "squares assigned to";
       total.type = "button";
       total.setAttribute("aria-expanded", "false");
-      total.setAttribute("aria-label", `Show the ${count} square${count === 1 ? "" : "s"} assigned to ${display}`);
-      total.title = `Show squares assigned to ${display}`;
+      total.setAttribute("aria-label", `Show ${detailDescription} ${display}`);
+      total.title = `Show ${detailDescription} ${display}`;
       const details = document.createElement("div");
       details.className = "ranking-details";
       details.id = `${container.id}-details-${index}`;
       details.hidden = true;
       total.setAttribute("aria-controls", details.id);
       const heading = document.createElement("strong");
-      heading.textContent = `${display} · ${count} ${count === 1 ? "entry" : "entries"}`;
+      const countLabel = isSquareDetail
+        ? (count === 1 ? "selection" : "selections")
+        : (count === 1 ? "entry" : "entries");
+      heading.textContent = `${display} · ${count} ${countLabel}`;
       const list = document.createElement("ul");
-      const matches = entryDetails.filter((entry) => (
-        String(entry.name || "").trim().toLocaleLowerCase() === display.toLocaleLowerCase()
+      const matchProperty = isSquareDetail ? "prompt" : "name";
+      const listProperty = isSquareDetail ? "name" : "prompt";
+      const matches = detailsConfig.entries.filter((entry) => (
+        String(entry[matchProperty] || "").trim().toLocaleLowerCase() === display.toLocaleLowerCase()
       ));
-      countValues(matches, "prompt").forEach(({ display: prompt, count: promptCount }) => {
+      countValues(matches, listProperty, isSquareDetail ? "No name entered" : "").forEach(({ display: itemDisplay, count: itemCount }) => {
         const item = document.createElement("li");
-        item.textContent = `${prompt}${promptCount > 1 ? ` (${promptCount})` : ""}`;
+        item.textContent = `${itemDisplay}${itemCount > 1 ? ` (${itemCount})` : ""}`;
         list.appendChild(item);
       });
       details.append(heading, list);
@@ -129,7 +136,7 @@ function renderRanking(container, values, emptyMessage, entryDetails = null) {
         const willOpen = details.hidden;
         details.hidden = !willOpen;
         total.setAttribute("aria-expanded", String(willOpen));
-        total.title = `${willOpen ? "Hide" : "Show"} squares assigned to ${display}`;
+        total.title = `${willOpen ? "Hide" : "Show"} ${detailDescription} ${display}`;
       });
     }
     container.appendChild(row);
@@ -271,8 +278,18 @@ function renderGame(data) {
     elements.openMobile.removeAttribute("href");
     elements.mobileLinkRow.hidden = true;
   }
-  renderRanking(elements.squareRanking, countValues(entries, "prompt"), "No squares have been selected yet.");
-  renderRanking(elements.nameRanking, countValues(entries, "name"), "No names have been entered yet.", entries);
+  renderRanking(
+    elements.squareRanking,
+    countValues(entries, "prompt"),
+    "No squares have been selected yet.",
+    { entries, type: "square" },
+  );
+  renderRanking(
+    elements.nameRanking,
+    countValues(entries, "name"),
+    "No names have been entered yet.",
+    { entries, type: "name" },
+  );
   renderPlayers(players);
   elements.download.disabled = !entries.length;
   elements.catalog.hidden = true;
