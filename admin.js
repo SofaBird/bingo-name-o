@@ -24,6 +24,11 @@ const elements = {
   entryCount: document.getElementById("entryCount"),
   bingoCount: document.getElementById("bingoCount"),
   boardCount: document.getElementById("boardCount"),
+  summaryCards: document.querySelectorAll("[data-summary]"),
+  summaryDetail: document.getElementById("summaryDetail"),
+  summaryDetailTitle: document.getElementById("summaryDetailTitle"),
+  summaryDetailContent: document.getElementById("summaryDetailContent"),
+  closeSummaryDetail: document.getElementById("closeSummaryDetail"),
   squareRanking: document.getElementById("squareRanking"),
   nameRanking: document.getElementById("nameRanking"),
   playerList: document.getElementById("playerList"),
@@ -79,6 +84,80 @@ function countValues(entries, property, emptyDisplay = "") {
     counts.set(key, current);
   });
   return [...counts.values()].sort((a, b) => b.count - a.count || a.display.localeCompare(b.display));
+}
+
+function playerRecordLabel(player, index) {
+  return `Player ${index + 1} · ${player.playerId.slice(0, 8)}`;
+}
+
+function closeSummaryDetail() {
+  elements.summaryDetail.hidden = true;
+  elements.summaryCards.forEach((card) => card.setAttribute("aria-expanded", "false"));
+}
+
+function renderSummaryDetail(type, players) {
+  const activeCard = [...elements.summaryCards].find((card) => card.dataset.summary === type);
+  if (!elements.summaryDetail.hidden && activeCard?.getAttribute("aria-expanded") === "true") {
+    closeSummaryDetail();
+    return;
+  }
+  elements.summaryCards.forEach((card) => card.setAttribute("aria-expanded", String(card === activeCard)));
+  elements.summaryDetailContent.replaceChildren();
+  const list = document.createElement("ul");
+  list.className = "summary-detail-list";
+
+  if (type === "players") {
+    elements.summaryDetailTitle.textContent = "Players";
+    players.forEach((player, index) => {
+      const boards = allBoards(player);
+      const selections = allEntries(player);
+      const item = document.createElement("li");
+      item.textContent = `${playerRecordLabel(player, index)} — ${selections.length} selection${selections.length === 1 ? "" : "s"}, ${boards.length} board${boards.length === 1 ? "" : "s"}, last active ${formatDate(player.updatedAt)}`;
+      list.appendChild(item);
+    });
+  } else if (type === "entries") {
+    elements.summaryDetailTitle.textContent = "Names Entered";
+    countValues(players.flatMap(allEntries), "name", "No name entered").forEach(({ display, count }) => {
+      const item = document.createElement("li");
+      item.textContent = `${display} — ${count}`;
+      list.appendChild(item);
+    });
+  } else if (type === "bingos") {
+    elements.summaryDetailTitle.textContent = "Players with Bingo";
+    players.forEach((player, index) => {
+      const bingoBoards = allBoards(player).filter((board) => board.hadBingo);
+      if (!bingoBoards.length) return;
+      const item = document.createElement("li");
+      item.textContent = `${playerRecordLabel(player, index)} — ${bingoBoards.length} Bingo board${bingoBoards.length === 1 ? "" : "s"}`;
+      list.appendChild(item);
+    });
+  } else {
+    elements.summaryDetailTitle.textContent = "Boards Played";
+    players.forEach((player, index) => {
+      allBoards(player).forEach((board) => {
+        const item = document.createElement("li");
+        item.textContent = `${playerRecordLabel(player, index)} · Board ${board.number} — ${board.theme}${board.hadBingo ? " · Bingo" : ""}`;
+        list.appendChild(item);
+      });
+    });
+  }
+
+  if (!list.children.length) {
+    const empty = document.createElement("p");
+    empty.className = "empty";
+    empty.textContent = "No matching activity yet.";
+    elements.summaryDetailContent.appendChild(empty);
+  } else {
+    elements.summaryDetailContent.appendChild(list);
+  }
+  elements.summaryDetail.hidden = false;
+}
+
+function configureSummaryCards(players) {
+  closeSummaryDetail();
+  elements.summaryCards.forEach((card) => {
+    card.onclick = () => renderSummaryDetail(card.dataset.summary, players);
+  });
 }
 
 function renderRanking(container, values, emptyMessage, detailsConfig = null) {
@@ -270,6 +349,7 @@ function renderGame(data) {
   elements.entryCount.textContent = entries.length;
   elements.bingoCount.textContent = players.filter((player) => allBoards(player).some((board) => board.hadBingo)).length;
   elements.boardCount.textContent = boards.length;
+  configureSummaryCards(players);
   elements.detailUpdated.textContent = `Updated ${new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit", second: "2-digit" })}`;
   if (data.game.mobilePath) {
     elements.openMobile.href = new URL(data.game.mobilePath, window.location.origin).toString();
@@ -393,6 +473,7 @@ elements.loginForm.addEventListener("submit", (event) => {
   password = elements.password.value;
   loadCurrentView();
 });
+elements.closeSummaryDetail.addEventListener("click", closeSummaryDetail);
 elements.logout.addEventListener("click", () => {
   password = "";
   elements.password.value = "";

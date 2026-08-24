@@ -80,11 +80,19 @@
         </div>
 
         <div class="summary-grid" aria-label="Game summary">
-          <article><strong id="playerCount">0</strong><span>Players</span></article>
-          <article><strong id="entryCount">0</strong><span>Names Entered</span></article>
-          <article><strong id="bingoCount">0</strong><span>Players with Bingo</span></article>
-          <article><strong id="boardCount">0</strong><span>Boards Played</span></article>
+          <button class="summary-card" type="button" data-summary="players" aria-expanded="false" aria-controls="summaryDetail"><strong id="playerCount">0</strong><span>Players</span></button>
+          <button class="summary-card" type="button" data-summary="entries" aria-expanded="false" aria-controls="summaryDetail"><strong id="entryCount">0</strong><span>Names Entered</span></button>
+          <button class="summary-card" type="button" data-summary="bingos" aria-expanded="false" aria-controls="summaryDetail"><strong id="bingoCount">0</strong><span>Players with Bingo</span></button>
+          <button class="summary-card" type="button" data-summary="boards" aria-expanded="false" aria-controls="summaryDetail"><strong id="boardCount">0</strong><span>Boards Played</span></button>
         </div>
+
+        <section id="summaryDetail" class="panel summary-detail" hidden>
+          <div class="panel-heading">
+            <h2 id="summaryDetailTitle"></h2>
+            <button id="closeSummaryDetail" class="button secondary" type="button">Close</button>
+          </div>
+          <div id="summaryDetailContent" class="summary-detail-content"></div>
+        </section>
 
         <div class="ranking-grid">
           <section class="panel">
